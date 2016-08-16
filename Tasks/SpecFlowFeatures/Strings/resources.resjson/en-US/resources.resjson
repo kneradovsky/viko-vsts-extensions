@@ -1,0 +1,13 @@
+{
+  "loc.friendlyName": "SpecFlowFeatures",
+  "loc.helpMarkDown": "",
+  "loc.description": "Exports SpecFlow features definition from the project workitems",
+  "loc.instanceNameFormat": "Echo $(samplestring)",
+  "loc.group.displayName.advanced": "Advanced",
+  "loc.input.label.samplepathinput": "Sample Path",
+  "loc.input.help.samplepathinput": "A sample path which is relative to root of repo if empty",
+  "loc.input.label.samplestring": "Sample String",
+  "loc.input.help.samplestring": "A sample string",
+  "loc.input.label.samplebool": "Sample Boolean",
+  "loc.input.help.samplebool": "If this is true, this task will fail if any errors are written to the StandardError stream."
+}
