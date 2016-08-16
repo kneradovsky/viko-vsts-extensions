@@ -148,7 +148,7 @@ gulp.task('compileTasks', ['clean'], function (cb) {
     }
 
     var tasksPath = path.join(__dirname, 'Tasks', '**/*.ts');
-    return gulp.src([tasksPath, 'definitions/*.d.ts'], { base: './Tasks' })
+    return gulp.src([tasksPath, 'typings/*.d.ts'], { base: './Tasks' })
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(path.join(__dirname, 'Tasks')));
@@ -185,7 +185,7 @@ gulp.task('cleanTests', function (cb) {
 gulp.task('compileTests', ['cleanTests'], function (cb) {
     var testsPath = path.join(__dirname, 'Tests', '**/*.ts');
 
-    return gulp.src([testsPath, 'definitions/*.d.ts'], { base: './Tests' })
+    return gulp.src([testsPath, 'typings/*.d.ts'], { base: './Tests' })
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(_testRoot));

@@ -262,19 +262,17 @@ function packageTask(pkgPath, commonDeps, commonSrc) {
 
 					// Statically link the Node externals.
 					var externals = require('./externals.json');
+					var dependencies = require('./package.json').dependencies;
 					if (task.execution['Node']) {
-						// Determine the vsts-task-lib version.
-						var libVer = externals.npm['vsts-task-lib'];
-						if (!libVer) {
-							throw new Error('External vsts-task-lib not defined in externals.json.');
-						}
-
-						// Copy the lib from the cache.
-						gutil.log('Linking vsts-task-lib ' + libVer);
-						var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '*');
-						var copyTarget = path.join(tgtPath, 'node_modules');
-						shell.mkdir('-p', copyTarget);
-						shell.cp('-R', copySource, copyTarget);
+						// link extension's dependencies to the task 
+						Object.keys(dependencies).forEach(function (dep) {
+							var libVer = dependencies[dep];
+							gutil.log('Linking ' + dep + ' '+libVer);
+							var copySource = path.join('node_modules',dep, '*');
+							var copyTarget = path.join(tgtPath, 'node_modules',dep);
+							shell.mkdir('-p', copyTarget);
+							shell.cp('-R', copySource, copyTarget);
+						});
 					}
 
 					// Statically link the PowerShell3 externals.
