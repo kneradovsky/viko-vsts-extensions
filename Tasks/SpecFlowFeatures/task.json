@@ -11,7 +11,7 @@
         "Minor": 1,
         "Patch": 0
     },
-    "instanceNameFormat": "Echo $(samplestring)",
+    "instanceNameFormat": "Export features from $(queryname)",
     "groups": [
         {
             "name": "advanced",
@@ -21,30 +21,59 @@
     ],
     "inputs": [
         {
-            "name": "samplepathinput",
-            "type": "filePath",
-            "label": "Sample Path",
+            "name": "queryname",
+            "type": "string",
+            "label": "Workitems query",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "A sample path which is relative to root of repo if empty"
+            "helpMarkDown": "Workitems named query to export description"
+        },        
+        {
+            "name": "apiurl",
+            "type": "string",
+            "label": "API Url",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "REST API url"
         },
         {
-            "name": "samplestring",
-            "type": "string",
-            "label": "Sample String",
+            "name": "authtype",
+            "type": "pick list",
+            "label": "Authentication type",
+            "defaultValue": "PAT",
+            "required": true,
+            "helpMarkDown": "Authentication type",
+            "options" : {
+                "PAT" : "Personal authentication token",
+                "NTLM" : "NTLM Authentication",
+                "BASIC" : "Basic Authentication"
+            }
+        },
+        {
+            "name": "PAT",
+            "type": "password",
+            "label": "Personal Authentication token",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "A sample string"
+            "helpMarkDown": "Personal access token to connect to the api, if you're using PAT auth type"
         },
         {
-            "name": "samplebool",
-            "type": "boolean",
-            "label": "Sample Boolean",
-            "defaultValue": "false",
+            "name": "Username",
+            "type": "string",
+            "label": "Username",
+            "defaultValue": "",
             "required": false,
-            "helpMarkDown": "If this is true, this task will fail if any errors are written to the StandardError stream.",
-            "groupName": "advanced"
+            "helpMarkDown": "Username to connect to the api, if you're using NTLM/Basic auth type"
+        },
+        {
+            "name": "Password",
+            "type": "password",
+            "label": "Password",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Password to connect to the api, if you're using NTLM/Basic auth type"
         }
+        
     ],
     "execution": {
         "Node": {

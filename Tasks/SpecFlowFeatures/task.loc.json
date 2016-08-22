@@ -21,29 +21,57 @@
   ],
   "inputs": [
     {
-      "name": "samplepathinput",
-      "type": "filePath",
-      "label": "ms-resource:loc.input.label.samplepathinput",
+      "name": "queryname",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.queryname",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.samplepathinput"
+      "helpMarkDown": "ms-resource:loc.input.help.queryname"
     },
     {
-      "name": "samplestring",
+      "name": "apiurl",
       "type": "string",
-      "label": "ms-resource:loc.input.label.samplestring",
+      "label": "ms-resource:loc.input.label.apiurl",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.apiurl"
+    },
+    {
+      "name": "authtype",
+      "type": "pick list",
+      "label": "ms-resource:loc.input.label.authtype",
+      "defaultValue": "PAT",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.authtype",
+      "options": {
+        "PAT": "Personal authentication token",
+        "NTLM": "NTLM Authentication",
+        "BASIC": "Basic Authentication"
+      }
+    },
+    {
+      "name": "PAT",
+      "type": "password",
+      "label": "ms-resource:loc.input.label.PAT",
       "defaultValue": "",
       "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.samplestring"
+      "helpMarkDown": "ms-resource:loc.input.help.PAT"
     },
     {
-      "name": "samplebool",
-      "type": "boolean",
-      "label": "ms-resource:loc.input.label.samplebool",
-      "defaultValue": "false",
+      "name": "Username",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.Username",
+      "defaultValue": "",
       "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.samplebool",
-      "groupName": "advanced"
+      "helpMarkDown": "ms-resource:loc.input.help.Username"
+    },
+    {
+      "name": "Password",
+      "type": "password",
+      "label": "ms-resource:loc.input.label.Password",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.Password"
     }
   ],
   "execution": {
