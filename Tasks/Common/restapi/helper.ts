@@ -34,13 +34,13 @@ export class ApiHelper {
         let plans =await testApi.getPlans(project);
         let plan:ti.TestPlan = plans.filter(p=> p.name==planname)[0];
         let plansuites = await testApi.getTestSuitesForPlan(project,plan.id,true,null,null,true);
-        console.log(plansuites);
-        let lastsuite:ti.TestSuite = plansuites[0]; 
+        let lastsuite:ti.TestSuite = plansuites[0];
         if(tcpath.length>1) 
             for(let i=1;i<tcpath.length;i++) {
                 lastsuite = lastsuite.children.filter(s => s.name==tcpath[i])[0];
             }
         if(lastsuite==null) throw new Error(tl.loc('TestCase path not found')+" "+strtcpath);
+        console.log(lastsuite);
         return testApi.getTestCases(project,plan.id,lastsuite.id); 
     }
 }

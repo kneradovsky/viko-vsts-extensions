@@ -79,5 +79,10 @@
         "Node": {
             "target": "index.js"
         }
+    },
+    "messages" : {
+        "FeatureTemplate" : "#language: en-US \n Feature: %s \n ",
+        "ScenarioTemplate" : "Scenario: %s_%s \n %s \n "        
     }
+
 }

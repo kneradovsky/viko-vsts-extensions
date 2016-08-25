@@ -78,5 +78,9 @@
     "Node": {
       "target": "index.js"
     }
-  }
+  },
+    "messages" : {
+        "FeatureTemplate" : "ms-resource:loc.messages.FeatureTemplate",
+        "ScenarioTemplate" : "ms-resource:loc.messages.ScenarioTemplate"        
+    }  
 }

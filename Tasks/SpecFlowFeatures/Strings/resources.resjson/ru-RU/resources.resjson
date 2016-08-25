@@ -16,9 +16,7 @@
   "loc.input.help.Username": "Username to connect to the api, if you're using NTLM/Basic auth type",
   "loc.input.label.Password": "Password",
   "loc.input.help.Password": "Password to connect to the api, if you're using NTLM/Basic auth type",
-  "loc.messages.FeatureTemplate" : "#language: en-US \r\n Feature: %s \r\n ",
-  "loc.messages.ScenarioTemplate" : "Scenario: %s_%s \r\n %s \r\n "
-
-
-    
+  "loc.messages.FeatureTemplate" : "#language: ru-RU \r\n Функционал: %s \r\n ",
+  "loc.messages.ScenarioTemplate" : "Сценарий: %s_%s \r\n %s \r\n "
+  
 }
