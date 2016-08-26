@@ -14,19 +14,35 @@
     "instanceNameFormat": "Export features from $(queryname)",
     "groups": [
         {
-            "name": "advanced",
+            "name": "access",
             "displayName": "Advanced",
             "isExpanded": false
         }
     ],
     "inputs": [
         {
-            "name": "queryname",
+            "name": "suites",
             "type": "string",
-            "label": "Workitems query",
+            "label": "Test suites to export",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "List of comma-separated test suites to export as SpecFlow features"
+        },        
+        {
+            "name": "destination",
+            "type": "path",
+            "label": "Destination path",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Workitems named query to export description"
+        },
+        {
+            "name": "cleanDestination",
+            "type": "boolean",
+            "label": "Clean destination",
+            "defaultValue": true,
+            "required": true,
+            "helpMarkDown": "Clean up destination before export"
         },        
         {
             "name": "apiurl",

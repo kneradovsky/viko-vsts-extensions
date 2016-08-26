@@ -7,37 +7,34 @@ import path = require('path');
 import fs = require('fs');
 
 import * as vm from 'vso-node-api';
-import {ApiHelper} from 'restapi/helper'; 
+import {ApiHelper} from 'vsts-specflow/apihelper';
+import {Feature,Scenario} from  'vsts-specflow/specflow';
 import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 
+let rimraf = require('rimraf');
 
 var features = {};
 
-class Feature { 
-    scenarios:string[]=[];
-    name:string;
-    constructor(suite:string) {
-        this.name=suite;
-    }
-    toString() {
-        return this.scenarios.join('\n');
-    }
-}
+
 
 function addScenario(suite:string, wi:wi.WorkItem) {
-    let ent  = new ents.AllHtmlEntities();
-    let scenarioBody = tl.loc("ScenarioTemplate",wi.id.toString(),wi.fields['System.Title'],wi.fields['System.Description']);
     if(features[suite]==undefined) features[suite] = new Feature(suite);
-    features[suite].scenarios.push(scenarioBody);
+    features[suite].addScenario(wi);
 }
 
 function storeFeature(name:string, feature:Feature) {
     let p1 = tl.getPathInput("destination");
     //make destination dir
-    fs.mkdirSync(p1);
+    try {
+        if(tl.getBoolInput("cleanDestination")) rimraf.sync(p1);
+        fs.mkdirSync(p1);
+    } catch(err) {
+        if(err.code!='EEXIST') throw err; 
+        console.log(err);
+    }
     let filepath = path.join(p1,name+".feature");
     let contents = tl.loc("FeatureTemplate",name)+feature.toString();
     fs.writeFileSync(filepath,contents);
@@ -45,6 +42,7 @@ function storeFeature(name:string, feature:Feature) {
 
 async function run() {
     try {
+        tl.setVariable('system.culture','ru-RU');
         tl.setResourcePath(path.join( __dirname, 'task.json'));
         let apihelper = new ApiHelper();
         let api = apihelper.getApi();
@@ -53,7 +51,7 @@ async function run() {
         //if(tl.getVariable("System.TeamProject")===undefined) 
             tl.setVariable("System.TeamProject",project.id);
         console.log(project);
-        let testCases:ti.SuiteTestCase[] = await apihelper.getTestCases("SpecFlow1/Suite1");
+        let testCases:ti.SuiteTestCase[] = await apihelper.getTestCases("SpecFlow1/Suite1/suite2");
         console.log("----------------------Test cases-----------------------");
         console.log(testCases);
         let workItemsPromises = testCases.map(stc => stc.testCase).map(wir => api.getWorkItemTrackingApi().getWorkItem(Number.parseInt(wir.id)));

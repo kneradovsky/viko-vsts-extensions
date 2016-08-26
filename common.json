@@ -1,7 +1,7 @@
 {
     "SpecFlowFeatures" :  [
         {
-        "module" : "restapi",
+        "module" : "vsts-specflow",
         "dest" : "node_modules"
         }
     ]
