@@ -18,9 +18,11 @@ export class ApiHelper {
             case 'PAT' : authtype = vm.getPersonalAccessTokenHandler(tl.getInput("PAT"));break;
             case 'NTLM' : authtype = vm.getNtlmHandler(tl.getInput('Username'),tl.getInput('Password'));break;
             case 'Basic' :  authtype = vm.getBasicHandler(tl.getInput('Username'),tl.getInput('Password'));break;
-            default: throw new Error(tl.loc('Unknown Authentication type'));
+            default: console.log("Using System.OAuth");authtype = vm.getBearerHandler(tl.getVariable("System.AccessToken")); 
+            
         }
-        this.webApi =new vm.WebApi(tl.getInput('apiurl'),authtype); 
+        let uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl'); 
+        this.webApi =new vm.WebApi(uri,authtype); 
     }
     getApi() : vm.WebApi {
         return this.webApi;
@@ -29,11 +31,11 @@ export class ApiHelper {
         let tcpath = strtcpath.split("/");
         if(tcpath.length<1) throw new Error(tl.loc('Wrong testcase path format'));
         let planname=tcpath[0];
-        let project = tl.getVariable("System.TeamProject");
+        let projectId = tl.getVariable("System.TeamProjectId");
         let testApi = this.webApi.getTestApi();
-        let plans =await testApi.getPlans(project);
+        let plans =await testApi.getPlans(projectId);
         let plan:ti.TestPlan = plans.filter(p=> p.name==planname)[0];
-        let plansuites = await testApi.getTestSuitesForPlan(project,plan.id,true,null,null,true);
+        let plansuites = await testApi.getTestSuitesForPlan(projectId,plan.id,true,null,null,true);
         let lastsuite:ti.TestSuite = plansuites[0];
         if(tcpath.length>1) 
             for(let i=1;i<tcpath.length;i++) {
@@ -41,7 +43,7 @@ export class ApiHelper {
             }
         if(lastsuite==null) throw new Error(tl.loc('TestCase path not found')+" "+strtcpath);
         console.log(lastsuite);
-        return testApi.getTestCases(project,plan.id,lastsuite.id); 
+        return testApi.getTestCases(projectId,plan.id,lastsuite.id);
     }
 }
 

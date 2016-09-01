@@ -21,7 +21,7 @@
     ],
     "inputs": [
         {
-            "name": "TestSuites",
+            "name": "suites",
             "type": "string",
             "label": "Test suites to export",
             "defaultValue": "",
@@ -45,17 +45,24 @@
             "helpMarkDown": "Clean up destination before export"
         },        
         {
+            "name": "apiurl",
+            "type": "string",
+            "label": "API Url",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "REST API url"
+        },
+        {
             "name": "authtype",
             "type": "pick list",
             "label": "Authentication type",
-            "defaultValue": "Token",
+            "defaultValue": "PAT",
             "required": true,
             "helpMarkDown": "Authentication type",
             "options" : {
                 "PAT" : "Personal authentication token",
                 "NTLM" : "NTLM Authentication",
-                "BASIC" : "Basic Authentication",
-                "Token" : "OAuth Token"
+                "BASIC" : "Basic Authentication"
             }
         },
         {

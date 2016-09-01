@@ -1,0 +1,24 @@
+{
+  "loc.friendlyName": "SpecFlowFeatures",
+  "loc.helpMarkDown": "",
+  "loc.description": "Exports SpecFlow features definition from the project workitems",
+  "loc.instanceNameFormat": "Export features from $(queryname)",
+  "loc.group.displayName.advanced": "Advanced",
+  "loc.input.label.queryname": "Workitems query",
+  "loc.input.help.queryname": "Workitems named query to export description",
+  "loc.input.label.apiurl": "API Url",
+  "loc.input.help.apiurl": "REST API url",
+  "loc.input.label.authtype": "Authentication type",
+  "loc.input.help.authtype": "Authentication type",
+  "loc.input.label.PAT": "Personal Authentication token",
+  "loc.input.help.PAT": "Personal access token to connect to the api, if you're using PAT auth type",
+  "loc.input.label.Username": "Username",
+  "loc.input.help.Username": "Username to connect to the api, if you're using NTLM/Basic auth type",
+  "loc.input.label.Password": "Password",
+  "loc.input.help.Password": "Password to connect to the api, if you're using NTLM/Basic auth type",
+  "loc.messages.FeatureTemplate" : "#language: en-US \r\n Feature: %s \r\n ",
+  "loc.messages.ScenarioTemplate" : "Scenario: %s_%s \r\n %s \r\n "
+
+
+    
+}

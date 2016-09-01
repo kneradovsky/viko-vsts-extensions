@@ -35,9 +35,24 @@ function storeFeature(name:string, feature:Feature) {
         if(err.code!='EEXIST') throw err; 
         console.log(err);
     }
+    
     let filepath = path.join(p1,name+".feature");
+    console.log("storing feature to:"+filepath);
     let contents = tl.loc("FeatureTemplate",name)+feature.toString();
     fs.writeFileSync(filepath,contents);
+}
+
+async function getProject(api:vm.WebApi) : Promise<ci.TeamProjectReference> {
+    let projId =tl.getVariable("System.TeamProjectId"); 
+    if(projId===undefined) {
+        let projects = await api.getCoreApi().getProjects(); 
+        let defer = Q.defer<ci.TeamProjectReference>();
+        let project = projects.find(it => it.name=='Открытие');
+        tl.setVariable("System.TeamProjectId",project.id);
+        defer.resolve(project);
+        return defer.promise;
+    }
+    return await api.getCoreApi().getProject(projId);
 }
 
 async function run() {
@@ -46,20 +61,17 @@ async function run() {
         tl.setResourcePath(path.join( __dirname, 'task.json'));
         let apihelper = new ApiHelper();
         let api = apihelper.getApi();
-        let projects = await api.getCoreApi().getProjects();
-        let project = projects.find(it => it.name=='Открытие');
-        //if(tl.getVariable("System.TeamProject")===undefined) 
-            tl.setVariable("System.TeamProject",project.id);
+        let project = await getProject(api);
         console.log(project);
-        let testCases:ti.SuiteTestCase[] = await apihelper.getTestCases("SpecFlow1/Suite1/suite2");
-        console.log("----------------------Test cases-----------------------");
-        console.log(testCases);
-        let workItemsPromises = testCases.map(stc => stc.testCase).map(wir => api.getWorkItemTrackingApi().getWorkItem(Number.parseInt(wir.id)));
-        for(let i=0;i<workItemsPromises.length;i++) addScenario("Suite1", await workItemsPromises[i]); 
-        //workItemsPromises.forEach(wip => wip.then(wi => addScenario("Suite1",wi)));
+        let suitePaths:string[] = tl.getInput("TestSuites").split(";");
+        for(let sp in suitePaths) {
+            console.log("Processing testcases for:"+sp);
+            let suiteName = path.parse(sp).name;
+            let testCases:ti.SuiteTestCase[] = await apihelper.getTestCases(sp);
+            let workItemsPromises = testCases.map(stc => stc.testCase).map(wir => api.getWorkItemTrackingApi().getWorkItem(Number.parseInt(wir.id)));
+            for(let i=0;i<workItemsPromises.length;i++) addScenario(suiteName, await workItemsPromises[i]); 
+        }
         for(let name in features) storeFeature(name,features[name])
-  
-        console.log(features);
         console.log('Task done! ');
     }
     catch (err) {
