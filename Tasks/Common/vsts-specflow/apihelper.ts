@@ -3,6 +3,7 @@ import * as vm from 'vso-node-api';
 import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
+import {Feature,Scenario,EntityIds,SuiteTestCases} from  './specflow';
 import Q = require('q');
 
 
@@ -27,7 +28,8 @@ export class ApiHelper {
     getApi() : vm.WebApi {
         return this.webApi;
     }
-    async getTestCases(strtcpath:string) : Promise<ti.SuiteTestCase[]> {
+    
+    async getTestCases(strtcpath:string) : Promise<SuiteTestCases> {
         let tcpath = strtcpath.split("/");
         if(tcpath.length<1) throw new Error(tl.loc('Wrong testcase path format'));
         let planname=tcpath[0];
@@ -43,7 +45,13 @@ export class ApiHelper {
             }
         if(lastsuite==null) throw new Error(tl.loc('TestCase path not found')+" "+strtcpath);
         console.log(lastsuite);
-        return testApi.getTestCases(projectId,plan.id,lastsuite.id);
+        let cases:SuiteTestCases = {
+            entids: {project:projectId,suite:lastsuite.id,plan:plan.id},
+            testcases:await testApi.getTestCases(projectId,plan.id,lastsuite.id) 
+        }
+        let retval = Q.defer<SuiteTestCases>();
+        retval.resolve(cases);
+        return retval.promise;
     }
 }
 

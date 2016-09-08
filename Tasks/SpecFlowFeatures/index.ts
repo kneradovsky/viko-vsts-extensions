@@ -8,7 +8,7 @@ import fs = require('fs');
 
 import * as vm from 'vso-node-api';
 import {ApiHelper} from 'vsts-specflow/apihelper';
-import {Feature,Scenario} from  'vsts-specflow/specflow';
+import {Feature,Scenario,EntityIds,SuiteTestCases} from  'vsts-specflow/specflow';
 import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
@@ -20,8 +20,8 @@ var features = {};
 
 
 
-function addScenario(suite:string, wi:wi.WorkItem) {
-    if(features[suite]==undefined) features[suite] = new Feature(suite);
+function addScenario(suite:string, entids: EntityIds,wi:wi.WorkItem) {
+    if(features[suite]==undefined) features[suite] = new Feature(suite,entids);
     features[suite].addScenario(wi);
 }
 
@@ -44,14 +44,6 @@ function storeFeature(name:string, feature:Feature) {
 
 async function getProject(api:vm.WebApi) : Promise<ci.TeamProjectReference> {
     let projId =tl.getVariable("System.TeamProjectId"); 
-    if(projId===undefined) {
-        let projects = await api.getCoreApi().getProjects(); 
-        let defer = Q.defer<ci.TeamProjectReference>();
-        let project = projects.find(it => it.name=='Открытие');
-        tl.setVariable("System.TeamProjectId",project.id);
-        defer.resolve(project);
-        return defer.promise;
-    }
     return await api.getCoreApi().getProject(projId);
 }
 
@@ -67,9 +59,9 @@ async function run() {
         for(let sp in suitePaths) {
             console.log("Processing testcases for:"+sp);
             let suiteName = path.parse(sp).name;
-            let testCases:ti.SuiteTestCase[] = await apihelper.getTestCases(sp);
-            let workItemsPromises = testCases.map(stc => stc.testCase).map(wir => api.getWorkItemTrackingApi().getWorkItem(Number.parseInt(wir.id)));
-            for(let i=0;i<workItemsPromises.length;i++) addScenario(suiteName, await workItemsPromises[i]); 
+            let testCases:SuiteTestCases = await apihelper.getTestCases(sp);
+            let workItemsPromises = testCases.testcases.map(stc => stc.testCase).map(wir => api.getWorkItemTrackingApi().getWorkItem(Number.parseInt(wir.id)));
+            for(let i=0;i<workItemsPromises.length;i++) addScenario(suiteName,testCases.entids, await workItemsPromises[i]); 
         }
         for(let name in features) storeFeature(name,features[name])
         console.log('Task done! ');
@@ -80,5 +72,6 @@ async function run() {
     }
 }
 
-
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("Build.BuildId","8205");
 run();

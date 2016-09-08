@@ -6,13 +6,74 @@ import ents = require('html-entities');
 import path = require('path');
 import fs = require('fs');
 
+import Q = require("q");
+
 import * as vm from 'vso-node-api';
 import {ApiHelper} from 'vsts-specflow/apihelper';
-import {Feature,Scenario} from  'vsts-specflow/specflow';
+import {Feature,Scenario,EntityIds} from  'vsts-specflow/specflow';
 import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
+
+
+
+
+class SpecFlowResults {
+    api:vm.WebApi;
+    constructor(api:vm.WebApi) {
+        this.api = api;
+    };
+    
+    async createTestResult(entids: EntityIds,source:ti.TestCaseResult) : Promise<ti.TestCaseResult> {
+        let tcname:string = source.testCaseTitle;
+        let tcId = Number.parseInt(tcname.substring(1,tcname.indexOf("_",1)));
+        let newres:ti.TestCaseResult = null; 
+        newres = Object.create(newres);
+        Object.assign(newres,source);
+        let points:ti.TestPoint[]=await this.api.getTestApi().getPoints(entids.project,entids.plan,entids.suite,null,null,tcId.toString());
+        let point = points[0];
+        newres.testPoint={id:point.id.toString(),name:undefined,url:undefined};
+        newres.testCaseTitle=null;
+        newres.testRun=null;
+        newres.testCase=null;
+        newres.failureType=null;
+        await this.updateTestPoint(entids,point.id.toString(),false,newres.outcome);
+        let res = Q.defer<ti.TestCaseResult>();
+        res.resolve(newres);
+        return res.promise;
+    }
+    async updateTestPoint(entids:EntityIds,pointId:string,active:boolean,outcome:string)  {
+        let newpoint:ti.PointUpdateModel = null;
+        newpoint = Object.create(newpoint);
+        newpoint.outcome=outcome;
+        newpoint.resetToActive=active;
+        await this.api.getTestApi().updateTestPoints(newpoint,entids.project,entids.plan,entids.suite,pointId);
+    }
+    async attachResults2TestCases(sourceRun:ti.TestRun) {
+        let testApi = this.api.getTestApi();
+        let projId = tl.getVariable("System.TeamProjectId");
+        let entids = new EntityIds();
+        entids.plan=15974;
+        entids.suite=15976;
+        entids.project=projId;
+        let CreateModel:ti.RunCreateModel=null;
+        CreateModel = Object.create(CreateModel);
+        let UpdateModel:ti.RunUpdateModel=null;
+        UpdateModel = Object.create(UpdateModel);
+        Object.assign(CreateModel,sourceRun);
+        CreateModel.state="InProgress";
+        let newrun = await testApi.createTestRun(CreateModel,projId);
+        let results:ti.TestCaseResult[] = await testApi.getTestResults(projId,sourceRun.id);
+        let newresults:ti.TestCaseResult[] = [];
+        for(let i=0;i<results.length;i++) {
+            newresults.push(await this.createTestResult(entids,results[i]));
+        }
+        await testApi.addTestResultsToTestRun(newresults,projId,newrun.id);
+        UpdateModel.state="Completed";
+        await testApi.updateTestRun(UpdateModel,projId,newrun.id);
+    }
+}
 
 
 async function closeRuns() {
@@ -31,44 +92,17 @@ async function run() {
     try {
         tl.setVariable('system.culture','ru-RU');
         tl.setResourcePath(path.join( __dirname, 'task.json'));
+        let projId = tl.getVariable("System.TeamProjectId");
         let apihelper = new ApiHelper();
         let api = apihelper.getApi();
+        let testApi = api.getTestApi(); 
         let buildId = Number.parseInt(tl.getVariable("Build.BuildId"));
-        let projId  = tl.getVariable("System.TeamProjectId"); 
         let build:bi.Build = await api.getBuildApi().getBuild(buildId);
-        let testRuns:ti.TestRun[] = await api.getTestApi().getTestRuns(projId,build.uri);
+        let testRuns:ti.TestRun[] = await testApi.getTestRuns(projId,build.uri);
+        let spRes:SpecFlowResults = new SpecFlowResults(api);
         let testpoints = [16534,16538]; 
         for(let i=0;i<testRuns.length;i++) {
-            let results:ti.TestCaseResult[] = await api.getTestApi().getTestResults(projId,testRuns[i].id);
-            for(let j=0;j<results.length;j++) {
-                let tcname:string = results[j].testCaseTitle;
-                let curres = results[j];   
-                curres.testCase.id=tcname.substring(1,tcname.indexOf("_",1)); //skip first _
-                curres.testCase.name=tcname.substring(tcname.indexOf("_",1)+1);
-                curres.testRun=undefined;
-                curres.failureType=undefined;
-                curres.automatedTestName=curres.automatedTestId=curres.automatedTestStorage=curres.automatedTestType=curres.automatedTestTypeId=undefined;
-                curres.testCaseTitle=undefined;
-                curres.id=undefined;
-                curres.testPoint={id:testpoints[j].toString(),name:undefined,url:undefined};
-            }
-            let templateCreateModel:ti.RunCreateModel=null;
-            let templateUpdateModel:ti.RunUpdateModel=null;
-            let createModel:ti.RunCreateModel = Object.create(templateCreateModel);
-            createModel.name=testRuns[i].name+"_specflow";
-            createModel.state="InProgress";
-            createModel.automated=false;
-            createModel.plan={id:"15974",name:"SpecFlow1",url:undefined};
-            createModel.pointIds=[0,1];
-            createModel.startDate=new Date().toISOString();
-            let newRun = await api.getTestApi().createTestRun(createModel,projId);
-            console.log("Add results");
-            await api.getTestApi().addTestResultsToTestRun(results,projId,newRun.id);
-            let updateModel:ti.RunUpdateModel = Object.create(templateUpdateModel);
-            updateModel.substate=ti.TestRunSubstate.Analyzed;
-            updateModel.state="Completed";
-            updateModel.completedDate=new Date().toISOString();
-            await api.getTestApi().updateTestRun(updateModel,projId,newRun.id);
+            await spRes.attachResults2TestCases(testRuns[i]);
         }
         console.log('Task done! ');
     }

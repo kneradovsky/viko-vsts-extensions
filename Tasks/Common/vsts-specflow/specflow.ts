@@ -7,17 +7,31 @@ import tl = require('vsts-task-lib/task');
 
 let Entities = require('html-entities').AllHtmlEntities;
 
+export class EntityIds {
+    project:string;
+    plan:number;
+    suite:number;
+    constructor() {};
+}
+
+export class SuiteTestCases {
+    entids:EntityIds;
+    testcases:ti.SuiteTestCase[];
+}
+
 export class Feature { 
     scenarios:Scenario[]=[];
     name:string;
-    constructor(suite:string) {
+    entids:EntityIds;
+    constructor(suite:string,entids:EntityIds) {
         this.name=suite;
+        this.entids=entids;
     }
     addScenario(it:wi.WorkItem) {
         this.scenarios.push(new Scenario(it));
     }
     toString() {
-        return this.scenarios.map(s=>s.toString()).join('\n');
+        return this.scenarios.map(s=>s.toString(this.entids)).join('\n');
     }
 }
 
@@ -33,10 +47,12 @@ export class Scenario {
         
         return Entities.decode(prstr); 
     }
-    toString() {
-        let scenarioBody = tl.loc("ScenarioTemplate",this.item.id.toString(),this.item.fields['System.Title'],this.item.fields['System.Description']);
+    toString(entids:EntityIds) : string {
+        let id=entids.plan+"_"+entids.suite+"_"+this.item.id.toString()
+        let scenarioBody = tl.loc("ScenarioTemplate",id,this.item.fields['System.Title'],this.item.fields['System.Description']);
         scenarioBody = this.stripTags(scenarioBody);
         return scenarioBody;
+
     }
 
 
