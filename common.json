@@ -4,5 +4,17 @@
         "module" : "vsts-specflow",
         "dest" : "node_modules"
         }
+    ],
+    "SpecFlowResults" :  [
+        {
+        "module" : "vsts-specflow",
+        "dest" : "node_modules"
+        }
+    ],
+    "AutoDefects" :  [
+        {
+        "module" : "vsts-specflow",
+        "dest" : "node_modules"
+        }
     ]
 }

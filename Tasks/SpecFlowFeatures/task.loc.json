@@ -14,39 +14,48 @@
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [
     {
-      "name": "advanced",
-      "displayName": "ms-resource:loc.group.displayName.advanced",
+      "name": "access",
+      "displayName": "ms-resource:loc.group.displayName.access",
       "isExpanded": false
     }
   ],
   "inputs": [
     {
-      "name": "queryname",
+      "name": "TestSuites",
       "type": "string",
-      "label": "ms-resource:loc.input.label.queryname",
+      "label": "ms-resource:loc.input.label.TestSuites",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.queryname"
+      "helpMarkDown": "ms-resource:loc.input.help.TestSuites"
     },
     {
-      "name": "apiurl",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.apiurl",
+      "name": "destination",
+      "type": "path",
+      "label": "ms-resource:loc.input.label.destination",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.apiurl"
+      "helpMarkDown": "ms-resource:loc.input.help.destination"
+    },
+    {
+      "name": "cleanDestination",
+      "type": "boolean",
+      "label": "ms-resource:loc.input.label.cleanDestination",
+      "defaultValue": true,
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.cleanDestination"
     },
     {
       "name": "authtype",
       "type": "pick list",
       "label": "ms-resource:loc.input.label.authtype",
-      "defaultValue": "PAT",
+      "defaultValue": "Token",
       "required": true,
       "helpMarkDown": "ms-resource:loc.input.help.authtype",
       "options": {
         "PAT": "Personal authentication token",
         "NTLM": "NTLM Authentication",
-        "BASIC": "Basic Authentication"
+        "BASIC": "Basic Authentication",
+        "Token": "OAuth Token"
       }
     },
     {
@@ -79,8 +88,8 @@
       "target": "index.js"
     }
   },
-    "messages" : {
-        "FeatureTemplate" : "ms-resource:loc.messages.FeatureTemplate",
-        "ScenarioTemplate" : "ms-resource:loc.messages.ScenarioTemplate"        
-    }  
+  "messages": {
+    "FeatureTemplate": "ms-resource:loc.messages.FeatureTemplate",
+    "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate"
+  }
 }

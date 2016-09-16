@@ -470,9 +470,9 @@ gulp.task('package', ['zip'], function (done) {
         return;
     }
 
-    var nuget3Path = shell.which('nuget3');
+    var nuget3Path = shell.which('nuget');
     if (!nuget3Path) {
-        done(new gutil.PluginError('PackageTask', 'nuget3.exe needs to be in the path.  could not find.'));
+        done(new gutil.PluginError('PackageTask', 'nuget.exe needs to be in the path.  could not find.'));
         return;
     }
 
@@ -516,6 +516,7 @@ gulp.task('package', ['zip'], function (done) {
         }
 
         var cmdline = '"' + nugetPath + '" pack ' + nuspecPath + ' -OutputDirectory ' + _pkgRoot;
+        console.log("Cmd1 : "+cmdline);
         QExec(cmdline)
             .then(function () {
                 // publish only if version and source supplied - used by CI server that does official publish
@@ -529,6 +530,7 @@ gulp.task('package', ['zip'], function (done) {
 
                     var pkgLocation = path.join(_pkgRoot, pkgName + '.' + version + '.nupkg');
                     var cmdline = '"' + nuget3Path + '" push ' + pkgLocation + ' -Source ' + server + ' -apikey Skyrise';
+                    console.log("Cmd2 : "+cmdline);
                     return QExec(cmdline);
                 }
                 else {

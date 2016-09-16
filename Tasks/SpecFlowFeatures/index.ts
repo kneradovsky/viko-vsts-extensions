@@ -56,7 +56,7 @@ async function run() {
         let project = await getProject(api);
         console.log(project);
         let suitePaths:string[] = tl.getInput("TestSuites").split(";");
-        for(let sp in suitePaths) {
+        for(let sp of suitePaths) {
             console.log("Processing testcases for:"+sp);
             let suiteName = path.parse(sp).name;
             let testCases:SuiteTestCases = await apihelper.getTestCases(sp);
@@ -74,4 +74,4 @@ async function run() {
 
 tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 tl.setVariable("Build.BuildId","8205");
-run();
+run().then(r => tl.setResult(tl.TaskResult.Succeeded,"Done"));

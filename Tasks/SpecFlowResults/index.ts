@@ -27,17 +27,18 @@ class SpecFlowResults {
     
     async createTestResult(entids: EntityIds,source:ti.TestCaseResult) : Promise<ti.TestCaseResult> {
         let tcname:string = source.testCaseTitle;
-        let tcId = Number.parseInt(tcname.substring(1,tcname.indexOf("_",1)));
+        let numparts:string[] = tcname.split("_");
+        let tcId = Number.parseInt(numparts[3]);
         let newres:ti.TestCaseResult = null; 
         newres = Object.create(newres);
         Object.assign(newres,source);
         let points:ti.TestPoint[]=await this.api.getTestApi().getPoints(entids.project,entids.plan,entids.suite,null,null,tcId.toString());
         let point = points[0];
         newres.testPoint={id:point.id.toString(),name:undefined,url:undefined};
-        newres.testCaseTitle=null;
-        newres.testRun=null;
-        newres.testCase=null;
-        newres.failureType=null;
+        //newres.testCaseTitle=null;
+        newres.testRun=undefined;
+        newres.testCase={id:numparts[3],name:undefined,url:undefined};
+        newres.failureType=undefined;
         await this.updateTestPoint(entids,point.id.toString(),false,newres.outcome);
         let res = Q.defer<ti.TestCaseResult>();
         res.resolve(newres);
@@ -53,10 +54,6 @@ class SpecFlowResults {
     async attachResults2TestCases(sourceRun:ti.TestRun) {
         let testApi = this.api.getTestApi();
         let projId = tl.getVariable("System.TeamProjectId");
-        let entids = new EntityIds();
-        entids.plan=15974;
-        entids.suite=15976;
-        entids.project=projId;
         let CreateModel:ti.RunCreateModel=null;
         CreateModel = Object.create(CreateModel);
         let UpdateModel:ti.RunUpdateModel=null;
@@ -64,11 +61,20 @@ class SpecFlowResults {
         Object.assign(CreateModel,sourceRun);
         CreateModel.state="InProgress";
         let newrun = await testApi.createTestRun(CreateModel,projId);
+        console.log(newrun);
         let results:ti.TestCaseResult[] = await testApi.getTestResults(projId,sourceRun.id);
         let newresults:ti.TestCaseResult[] = [];
         for(let i=0;i<results.length;i++) {
-            newresults.push(await this.createTestResult(entids,results[i]));
+            let entids = new EntityIds();
+            entids.project=projId;
+            let numparts:string[] = results[i].testCaseTitle.split("_");
+            entids.plan=Number.parseInt(numparts[1]);
+            entids.suite=Number.parseInt(numparts[2]);
+            let nres = await this.createTestResult(entids,results[i]);
+            nres.testRun = {id:newrun.id.toString(),name:undefined,url:undefined};
+            newresults.push(nres);
         }
+        console.log(newresults);
         await testApi.addTestResultsToTestRun(newresults,projId,newrun.id);
         UpdateModel.state="Completed";
         await testApi.updateTestRun(UpdateModel,projId,newrun.id);
@@ -113,6 +119,7 @@ async function run() {
 }
 
 tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("Build.BuildId","8205");
+//tl.setVariable("Build.BuildId","8764");
+tl.setVariable("Build.BuildId","9141");
 //closeRuns();
-run();
+run().then(r => tl.setResult(tl.TaskResult.Succeeded,"Done"));

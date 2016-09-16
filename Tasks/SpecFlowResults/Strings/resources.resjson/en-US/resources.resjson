@@ -1,11 +1,15 @@
 {
-  "loc.friendlyName": "SpecFlowFeatures",
+  "loc.friendlyName": "SpecFlowResults",
   "loc.helpMarkDown": "",
-  "loc.description": "Exports SpecFlow features definition from the project workitems",
-  "loc.instanceNameFormat": "Export features from $(queryname)",
-  "loc.group.displayName.advanced": "Advanced",
-  "loc.input.label.queryname": "Workitems query",
-  "loc.input.help.queryname": "Workitems named query to export description",
+  "loc.description": "Sets the results of the specflow test to the result of the test run",
+  "loc.instanceNameFormat": "Set the results of the $(suites)",
+  "loc.group.displayName.access": "Advanced",
+  "loc.input.label.suites": "Test suites to export",
+  "loc.input.help.suites": "List of comma-separated test suites to export as SpecFlow features",
+  "loc.input.label.destination": "Destination path",
+  "loc.input.help.destination": "Workitems named query to export description",
+  "loc.input.label.cleanDestination": "Clean destination",
+  "loc.input.help.cleanDestination": "Clean up destination before export",
   "loc.input.label.apiurl": "API Url",
   "loc.input.help.apiurl": "REST API url",
   "loc.input.label.authtype": "Authentication type",
@@ -16,9 +20,6 @@
   "loc.input.help.Username": "Username to connect to the api, if you're using NTLM/Basic auth type",
   "loc.input.label.Password": "Password",
   "loc.input.help.Password": "Password to connect to the api, if you're using NTLM/Basic auth type",
-  "loc.messages.FeatureTemplate" : "#language: en-US \r\n Feature: %s \r\n ",
-  "loc.messages.ScenarioTemplate" : "Scenario: %s_%s \r\n %s \r\n "
-
-
-    
+  "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
+  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
 }

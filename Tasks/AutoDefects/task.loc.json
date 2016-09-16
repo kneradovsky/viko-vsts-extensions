@@ -1,6 +1,6 @@
 {
-  "id": "bf77a355-ef84-4cba-bc47-6f64cb7e458f",
-  "name": "SpecFlowResult",
+  "id": "af839968-eceb-413b-a3b2-30d384ccd169",
+  "name": "AutoDefects",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "helpMarkDown": "ms-resource:loc.helpMarkDown",
@@ -20,30 +20,6 @@
     }
   ],
   "inputs": [
-    {
-      "name": "suites",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.suites",
-      "defaultValue": "",
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.suites"
-    },
-    {
-      "name": "destination",
-      "type": "path",
-      "label": "ms-resource:loc.input.label.destination",
-      "defaultValue": "",
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.destination"
-    },
-    {
-      "name": "cleanDestination",
-      "type": "boolean",
-      "label": "ms-resource:loc.input.label.cleanDestination",
-      "defaultValue": true,
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.cleanDestination"
-    },
     {
       "name": "apiurl",
       "type": "string",
