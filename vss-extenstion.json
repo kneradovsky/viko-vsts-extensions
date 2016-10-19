@@ -1,0 +1,62 @@
+{
+    "manifestVersion": 1,
+    "id": "build-tasks",
+    "name": "OpenBank Build Tools",
+    "version": "0.0.1",
+    "publisher": "kneradovsky",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Tools for building, testing and deployment. Includes build tasks.",
+    "categories": [
+        "Build and release"
+    ],
+    "icons": {
+        "default": "extension-icon.png"        
+    },
+    "files": [
+        {
+            "path": "AutoDefects"
+        },
+        {
+            "path": "SpecFlowFeatures"
+        },
+        {
+            "path": "SpecFlowResults"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "openbank-buildtasks-autodefects",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "OpenBank AutoDefects"
+            }
+        },
+        {
+            "id": "openbank-buildtasks-specflowfeatures",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "OpenBank SpecFlowFeatures"
+            }
+        },
+        {
+            "id": "openbank-buildtasks-specflowresults",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "OpenBank SpecFlowResults"
+            }
+        }
+    ]
+}

@@ -16,6 +16,8 @@ import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 
+var assignees = {}
+var roomUsers = []
 
 async function getFailedTestRuns(apihelper:ApiHelper, build:bi.Build) : Promise<ti.TestRun[]> {
     let projId = tl.getVariable("System.TeamProjectId");
@@ -41,14 +43,21 @@ async function createBug(apihelper:ApiHelper, build:bi.Build, result:ti.TestCase
     let projId = tl.getVariable("System.TeamProjectId");
     let api = apihelper.getApi();
     let wit = api.getWorkItemTrackingApi();
+    let BugInfo = {
+        "Build": build.buildNumber,
+        "Name": result.testCaseTitle,
+        "Severity": "AutoTestFailure",
+        "Priority": "High"
+    }
     let WorkItemFields = {
         //"System.AreaId":Number.parseInt(result.area.id),
         "System.TeamProject":result.project.name,
-        "System.State" : "Active",
-        "System.Reason": "Build Failure",
+        "System.State" : "New",
+        "System.AssignedTo": assignees[result.testRun.name] || assignees['default'],
+        "System.Reason": "New",
         "System.Title": "Failed "+result.testCaseTitle,
-        "System.Tags": "AutoTestFailure; AutoBug; "+build.buildNumber+"; ",
-        "Microsoft.VSTS.TCM.ReproSteps" : result.errorMessage + " " + result.stackTrace
+        "System.Tags": "AutoTestFailure; AutoBug; "+build.buildNumber+"; "+result.testRun.name+";",
+        "Microsoft.VSTS.TCM.ReproSteps" : JSON.stringify(BugInfo)+"\r\n<br/>" + result.errorMessage + " " + result.stackTrace
     }
     let WorkItemRelations = [
         {"rel": "ArtifactLink","url":build.uri,"attributes":{"name":"Build"}}
@@ -64,11 +73,14 @@ async function run() {
     try {
         tl.setVariable('system.culture','ru-RU');
         tl.setResourcePath(path.join( __dirname, 'task.json'));
+        let assigneesFile = tl.getPathInput("Assignees");
+        assignees = JSON.parse(fs.readFileSync(assigneesFile).toString());
         let apihelper = new ApiHelper();
         let api = apihelper.getApi();
         let buildId = Number.parseInt(tl.getVariable("Build.BuildId"));
         let projId  = tl.getVariable("System.TeamProjectId"); 
         let build:bi.Build = await api.getBuildApi().getBuild(buildId);
+        
         let testRuns = await getFailedTestRuns(apihelper,build);
         for(let run of testRuns) {
             console.log("Creating bugs for run:"+run.name);
@@ -89,7 +101,7 @@ async function run() {
 }
 
 tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("Build.BuildId","8798");
+tl.setVariable("Build.BuildId","10042");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
-.catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"));
+.catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))

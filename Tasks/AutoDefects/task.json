@@ -64,6 +64,14 @@
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "Password to connect to the api, if you're using NTLM/Basic auth type"
+        },
+        {
+            "name": "Assignees",
+            "type": "filePath",
+            "label": "Assignees list file",
+            "defaultValue": "assignees.json",
+            "required": false,
+            "helpMarkDown": "Bug assignees list in json format. Format: {\"testrunname\":\"username\"}"
         }
         
     ],
