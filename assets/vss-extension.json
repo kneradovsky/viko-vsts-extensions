@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "build-tasks",
     "name": "OpenBank Build Tools",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "kneradovsky",
     "targets": [
         {

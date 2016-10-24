@@ -12,59 +12,8 @@
     "Patch": 0
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
-  "groups": [
-    {
-      "name": "access",
-      "displayName": "ms-resource:loc.group.displayName.access",
-      "isExpanded": false
-    }
-  ],
+  "groups": [],
   "inputs": [
-    {
-      "name": "apiurl",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.apiurl",
-      "defaultValue": "",
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.apiurl"
-    },
-    {
-      "name": "authtype",
-      "type": "pick list",
-      "label": "ms-resource:loc.input.label.authtype",
-      "defaultValue": "PAT",
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.authtype",
-      "options": {
-        "PAT": "Personal authentication token",
-        "NTLM": "NTLM Authentication",
-        "BASIC": "Basic Authentication"
-      }
-    },
-    {
-      "name": "PAT",
-      "type": "password",
-      "label": "ms-resource:loc.input.label.PAT",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.PAT"
-    },
-    {
-      "name": "Username",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.Username",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.Username"
-    },
-    {
-      "name": "Password",
-      "type": "password",
-      "label": "ms-resource:loc.input.label.Password",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.Password"
-    },
     {
       "name": "Assignees",
       "type": "filePath",

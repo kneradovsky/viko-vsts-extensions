@@ -13,58 +13,8 @@
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [
-        {
-            "name": "access",
-            "displayName": "Advanced",
-            "isExpanded": false
-        }
     ],
     "inputs": [
-        {
-            "name": "apiurl",
-            "type": "string",
-            "label": "API Url",
-            "defaultValue": "",
-            "required": true,
-            "helpMarkDown": "REST API url"
-        },
-        {
-            "name": "authtype",
-            "type": "pick list",
-            "label": "Authentication type",
-            "defaultValue": "PAT",
-            "required": true,
-            "helpMarkDown": "Authentication type",
-            "options" : {
-                "PAT" : "Personal authentication token",
-                "NTLM" : "NTLM Authentication",
-                "BASIC" : "Basic Authentication"
-            }
-        },
-        {
-            "name": "PAT",
-            "type": "password",
-            "label": "Personal Authentication token",
-            "defaultValue": "",
-            "required": false,
-            "helpMarkDown": "Personal access token to connect to the api, if you're using PAT auth type"
-        },
-        {
-            "name": "Username",
-            "type": "string",
-            "label": "Username",
-            "defaultValue": "",
-            "required": false,
-            "helpMarkDown": "Username to connect to the api, if you're using NTLM/Basic auth type"
-        },
-        {
-            "name": "Password",
-            "type": "password",
-            "label": "Password",
-            "defaultValue": "",
-            "required": false,
-            "helpMarkDown": "Password to connect to the api, if you're using NTLM/Basic auth type"
-        },
         {
             "name": "Assignees",
             "type": "filePath",
