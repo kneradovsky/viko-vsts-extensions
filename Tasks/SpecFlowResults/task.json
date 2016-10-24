@@ -1,6 +1,6 @@
 {
     "id": "bf77a355-ef84-4cba-bc47-6f64cb7e458f",
-    "name": "SpecFlowResult",
+    "name": "SpecFlowResults",
     "friendlyName": "SpecFlowResults",
     "description": "Sets the results of the specflow test to the result of the test run",
     "helpMarkDown": "",

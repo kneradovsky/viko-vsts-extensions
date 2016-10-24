@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "build-tasks",
     "name": "OpenBank Build Tools",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "kneradovsky",
     "targets": [
         {
@@ -24,7 +24,7 @@
             "path": "SpecFlowFeatures"
         },
         {
-            "path": "SpecFlowResult"
+            "path": "SpecFlowResults"
         }
     ],
     "contributions": [
@@ -35,7 +35,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "OpenBank AutoDefects"
+                "name": "AutoDefects"
             }
         },
         {
@@ -45,7 +45,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "OpenBank SpecFlowFeatures"
+                "name": "SpecFlowFeatures"
             }
         },
         {
@@ -55,7 +55,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "OpenBank SpecFlowResult"
+                "name": "SpecFlowResults"
             }
         }
     ]
