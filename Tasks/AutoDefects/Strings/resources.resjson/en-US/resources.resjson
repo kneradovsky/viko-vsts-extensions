@@ -14,6 +14,8 @@
   "loc.input.help.Username": "Username to connect to the api, if you're using NTLM/Basic auth type",
   "loc.input.label.Password": "Password",
   "loc.input.help.Password": "Password to connect to the api, if you're using NTLM/Basic auth type",
+  "loc.input.label.Assignees": "Assignees list file",
+  "loc.input.help.Assignees": "Bug assignees list in json format. Format: {\"testrunname\":\"username\"}",
   "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
   "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
 }

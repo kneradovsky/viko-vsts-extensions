@@ -64,6 +64,14 @@
       "defaultValue": "",
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.Password"
+    },
+    {
+      "name": "Assignees",
+      "type": "filePath",
+      "label": "ms-resource:loc.input.label.Assignees",
+      "defaultValue": "assignees.json",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.Assignees"
     }
   ],
   "execution": {

@@ -24,7 +24,7 @@
             "path": "SpecFlowFeatures"
         },
         {
-            "path": "SpecFlowResults"
+            "path": "SpecFlowResult"
         }
     ],
     "contributions": [
@@ -55,7 +55,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "OpenBank SpecFlowResults"
+                "name": "OpenBank SpecFlowResult"
             }
         }
     ]

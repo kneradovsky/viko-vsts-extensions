@@ -149,6 +149,7 @@ gulp.task('compileTasks', ['clean'], function (cb) {
     }
 
     var tasksPath = path.join(__dirname, 'Tasks', '**/*.ts');
+
     return gulp.src([tasksPath, 'typings/*.d.ts'], { base: './Tasks' })
         .pipe(sourcemaps.init())
         .pipe(ts)
@@ -157,7 +158,12 @@ gulp.task('compileTasks', ['clean'], function (cb) {
         .pipe(gulp.dest(path.join(__dirname, 'Tasks')));
 });
 
-gulp.task('compile', ['compileTasks', 'compileTests']);
+gulp.task('manifest',function() {
+    return gulp.src(path.join(__dirname,'/assets/*.*'))
+    .pipe(gulp.dest(_buildRoot+"/"));
+});
+
+gulp.task('compile', ['compileTasks', 'manifest','compileTests']);
 
 gulp.task('locCommon', ['compileTasks'], function () {
     return gulp.src(path.join(__dirname, 'Tasks/Common/**/module.json'))
