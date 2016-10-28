@@ -260,6 +260,16 @@ function packageTask(pkgPath, commonDeps, commonSrc) {
 					shell.rm(path.join(tgtPath, '*.csproj'));
 					shell.rm(path.join(tgtPath, '*.md'));
 
+					
+					//statically link project wide node_modules to statisfy transient dependencies
+					/*
+					var copySource = path.join('node_modules','*');
+					var copyTarget = path.join(tgtPath,'node_modules');
+					gutil.log('Linking node_modules to ' +task.name);
+					shell.mkdir('-p', copyTarget);
+					shell.cp('-R', copySource, copyTarget);
+					*/					
+ 
 					// Statically link the Node externals.
 					var externals = require('./externals.json');
 					var dependencies = require('./package.json').dependencies;
@@ -274,6 +284,7 @@ function packageTask(pkgPath, commonDeps, commonSrc) {
 							shell.cp('-R', copySource, copyTarget);
 						});
 					}
+
 
 					// Statically link the PowerShell3 externals.
 					if (task.execution['PowerShell3']) {
