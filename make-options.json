@@ -1,6 +1,8 @@
 {
     "tasks": [
-	"AutoDefects"
+	"AutoDefects",
+    "SpecFlowResults",
+    "SpecFlowFeatures"
     ],
     "taskResources": [
         "*.ps1",

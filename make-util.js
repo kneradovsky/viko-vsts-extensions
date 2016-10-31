@@ -128,7 +128,10 @@ var buildNodeTask = function (taskPath, outDir) {
     if (test('-f', rp('package.json'))) {
         run('npm install');
     }
-    run('tsc --outDir ' + outDir + ' --rootDir ' + taskPath);
+    if(test('-f',rp('typings.json'))) {
+      run('typings install');
+    }
+    run('tsc -d --outDir ' + outDir + ' --rootDir ' + taskPath);
     cd(originalDir);
 }
 exports.buildNodeTask = buildNodeTask;
