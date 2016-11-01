@@ -36,8 +36,16 @@ gulp.task('package', function (cb) {
     var publish = process.argv.filter(function (arg) { return arg == '--server' }).length > 0;
     make('build', cb) &&
         make('package', cb) &&
-        make('test', cb) &&
-        make('testLegacy', cb) &&
+        //make('test', cb) &&
+	//make('testLegacy', cb) &&
         publish &&
         make('publish', cb);
 });
+
+gulp.task('clean',function(cb) {
+    make('clean',cb);
+});
+
+gulp.task('mkext',function(cb) {
+    make('makeExtensions',cb);
+})

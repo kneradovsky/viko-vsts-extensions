@@ -1,0 +1,36 @@
+{
+    "manifestVersion": 1,
+    "id": "openbank-build-tasks",
+    "name": "OpenBank Build Tools",
+    "version": "0.0.4",
+    "publisher": "kneradovsky",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Tools for building, testing and deployment. Includes build tasks.",
+    "categories": [
+        "Build and release"
+    ],
+    "icons": {
+        "default": "extension-icon.png"        
+    },
+    "files": [
+        {
+            "path": "AutoDefects"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "openbank-buildtasks-autodefects",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "AutoDefects"
+            }
+        }
+    ]
+}

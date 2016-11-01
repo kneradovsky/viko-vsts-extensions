@@ -90,6 +90,8 @@ target.clean = function () {
     rm('-Rf', path.join(__dirname, '_build'));
     mkdir('-p', buildPath);
     rm('-Rf', path.join(__dirname, '_test'));
+    rm('-Rf', packagePath);
+    rm('-Rf', path.join(__dirname, '_temp'));
 };
 
 //
@@ -98,7 +100,6 @@ target.clean = function () {
 //
 target.build = function() {
     target.clean();
-
     ensureTool('tsc', '--version', 'Version 1.8.7');
     ensureTool('npm', '--version', function (output) {
         if (semver.lt(output, '3.0.0')) {
@@ -383,7 +384,7 @@ target.package = function() {
         fail('invalid semver version: ' + version);
     }
 
-    var pkgName = 'Mseng.MS.TF.Build.Tasks';
+    var pkgName = 'OpenBank.Build.Tasks';
     console.log();
     console.log('> Generating .nuspec file');
     var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
@@ -444,4 +445,52 @@ target.bump = function() {
         taskJson.version.Patch = taskJson.version.Patch + 1;
         fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
     });
+}
+
+//create manifest file 
+target.makeExtensions = function() {
+    ensureTool('tfx');
+    var extList = taskList;
+    if(options.exts) {
+        extList = options.exts.split(',');
+    }
+    
+    extList.forEach(function(taskName) {
+        var taskPath = path.join(__dirname, 'Tasks', taskName);
+        var defaultImage = path.join(__dirname,'assets','extension-icon.png');
+        var manifestTemplate = path.join(__dirname,'assets','vss-extension-template.json');
+        ensureExists(taskPath);
+        // load the task.json
+        var outDir;
+        var taskJsonPath = path.join(taskPath, 'task.json');
+        var taskPackageJsonPath = path.join(taskPath, 'package.json');
+        if (test('-f', taskJsonPath)) {
+            var taskDef = require(taskJsonPath);
+            var manifest = require(manifestTemplate);
+            var taskPkg = require(taskPackageJsonPath);
+            console.log('Creating manifest for task: '+taskDef.name);            
+            manifest.version=`${taskDef.version.Major}.${taskDef.version.Minor}.${taskDef.version.Patch}`;
+            manifest.id=manifest.id+'-'+taskDef.name;
+            manifest.name=manifest.name+' '+taskDef.friendlyName;
+            manifest.files[0].path=taskDef.name;
+            manifest.contributions[0].id=taskPkg.name;
+            var iconPath=path.join(taskPath,'icon.png');
+            if(test('-f',iconPath)) {
+                manifest.icons.default='icon.png';
+            } else {
+                manifest.icons.default='extension-icon.png';
+                iconPath=defaultImage;
+            }
+            console.log(iconPath);
+            console.log(buildPath);
+            cp('-f',iconPath,buildPath);
+            var manifestContent = JSON.stringify(manifest); 
+            console.log(manifestContent);
+            fs.writeFileSync(path.join(buildPath,'vss-extension.json'),manifestContent);
+            var curdir = __dirname;
+            cd(buildPath);
+            run('tfx extension create --manifest-globs vss-extension.json');
+            cd(curdir);
+        } 
+    })
 }
