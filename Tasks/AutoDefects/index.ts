@@ -65,7 +65,7 @@ async function createBug(apihelper:ApiHelper, build:bi.Build, result:ti.TestCase
     let wriDoc = Object.keys(WorkItemFields).map(key => {return {"op":"add","path":"/fields/"+key,"value":WorkItemFields[key]}});
     let wriRels = Object.keys(WorkItemRelations).map(item => {return {"op":"add","path":"/relations/-","value":WorkItemRelations[item]}});
     wriDoc = wriDoc.concat(wriRels);
-    console.log(wriDoc);
+    //console.log(wriDoc);
     return wit.createWorkItem({"Content-Type": "application/json-patch+json"},wriDoc,projId,"Bug");    
 }
 
@@ -101,8 +101,8 @@ async function run() {
     }
 }
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-//tl.setVariable("Build.BuildId","10511");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("Build.BuildId","10561");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
 .catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))

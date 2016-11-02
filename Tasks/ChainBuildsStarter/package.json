@@ -1,8 +1,8 @@
 {
-  "name": "vsts-openbank-autodefects",
-  "version": "1.0.0",
+  "name": "vsts-openbank-chainbuilds-starter",
+  "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "queuebuilds.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,8 +21,7 @@
     "ssl-root-cas": "^1.2",
     "vso-node-api": "^5.1",
     "vsts-task-lib": "^0.9",
-    "xml2js": "^0.4.17",
-    "vsts-specflow" : "^1"
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {
     "adm-zip": "0.4.7",

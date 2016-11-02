@@ -1,7 +1,7 @@
 {
     "id": "af839968-eceb-413b-a3b2-30d384ccd169",
-    "name": "AutoDefects",
-    "friendlyName": "AutoDefects",
+    "name": "ChainBuildsStarter",
+    "friendlyName": "ChainBuildsStarter",
     "description": "Automatically creates defects using the failed tests from the current build",
     "helpMarkDown": "",
     "category": "Build",
@@ -9,25 +9,25 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 8
+        "Patch": 1
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [
     ],
     "inputs": [
         {
-            "name": "Assignees",
-            "type": "filePath",
-            "label": "Assignees list file",
-            "defaultValue": "assignees.json",
-            "required": false,
-            "helpMarkDown": "Bug assignees list in json format. Format: {\"testrunname\":\"username\"}"
+            "name": "Builds",
+            "type": "String",
+            "label": "Build list",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Comma separated list of the build definition names to start"
         }
         
     ],
     "execution": {
         "Node": {
-            "target": "index.js"
+            "target": "queuebuilds.js"
         }
     },
     "messages" : {

@@ -92,6 +92,14 @@ target.clean = function () {
     rm('-Rf', path.join(__dirname, '_test'));
     rm('-Rf', packagePath);
     rm('-Rf', path.join(__dirname, '_temp'));
+    //tasks clean up
+    taskList.forEach(function(taskName) {
+        banner('Cleaning: ' + taskName);
+        var taskPath = path.join(__dirname, 'Tasks', taskName);
+        rm('-Rf', path.join(taskPath, 'node_modules'));
+        rm('-Rf', path.join(taskPath, 'typings'));
+        banner(taskName+' was cleaned');
+    });
 };
 
 //
@@ -106,15 +114,15 @@ target.build = function() {
             fail('expected 3.0.0 or higher');
         }
     });
-
     taskList.forEach(function(taskName) {
         banner('Building: ' + taskName);
         var taskPath = path.join(__dirname, 'Tasks', taskName);
         ensureExists(taskPath);
-
+        //copy tsconfig from __dirname to the task folder
+        cp('-f',path.join(__dirname,'tsconfig.json'),taskPath);
         // load the task.json
         var outDir;
-        var shouldBuildNode = test('-f', path.join(taskPath, 'tsconfig.json'));
+        var shouldBuildNode = true; //test('-f', path.join(taskPath, 'tsconfig.json'));
         var shouldBuildPs3 = false;
         var taskJsonPath = path.join(taskPath, 'task.json');
         if (test('-f', taskJsonPath)) {
@@ -170,7 +178,10 @@ target.build = function() {
 
                     // npm install and compile
                     if ((mod.type === 'node' && mod.compile == true) || test('-f', path.join(modPath, 'tsconfig.json'))) {
+                        //copy tsconfig from __dirname to the task folder
+                        cp('-f',path.join(__dirname,'tsconfig.json'),modPath);
                         buildNodeTask(modPath, modOutDir);
+                        rm('-f',path.join(modPath,'tsconfig.json'));
                     }
 
                     // copy default resources and any additional resources defined in the module's make.json
@@ -227,8 +238,9 @@ target.build = function() {
         console.log();
         console.log('> copying task resources');
         copyTaskResources(taskMake, taskPath, outDir);
+        //tsconfig cleanup
+        rm('-f',path.join(taskPath,'tsconfig.json'))
     });
-
     banner('Build successful', true);
 }
 
@@ -474,7 +486,7 @@ target.makeExtensions = function() {
             manifest.name=manifest.name+' '+taskDef.friendlyName;
             manifest.files[0].path=taskDef.name;
             manifest.contributions[0].id=taskPkg.name;
-            var iconPath=path.join(taskPath,'icon.png');
+            var iconPath=path.join(buildPath,taskName,'icon.png');
             if(test('-f',iconPath)) {
                 manifest.icons.default='icon.png';
             } else {
@@ -484,7 +496,7 @@ target.makeExtensions = function() {
             console.log(iconPath);
             console.log(buildPath);
             cp('-f',iconPath,buildPath);
-            var manifestContent = JSON.stringify(manifest); 
+            var manifestContent = JSON.stringify(manifest,null,4); 
             console.log(manifestContent);
             fs.writeFileSync(path.join(buildPath,'vss-extension.json'),manifestContent);
             var curdir = __dirname;
