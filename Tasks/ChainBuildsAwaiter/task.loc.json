@@ -1,6 +1,6 @@
 {
   "id": "af839968-eceb-413b-a3b2-30d384ccd169",
-  "name": "AutoDefects",
+  "name": "ChainBuildsStarter",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "helpMarkDown": "ms-resource:loc.helpMarkDown",
@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 12
+    "Patch": 8
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],

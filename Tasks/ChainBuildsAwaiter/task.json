@@ -1,7 +1,7 @@
 {
     "id": "af839968-eceb-413b-a3b2-30d384ccd169",
-    "name": "AutoDefects",
-    "friendlyName": "AutoDefects",
+    "name": "ChainBuildsAwaiter",
+    "friendlyName": "ChainBuildsAwaiter",
     "description": "Automatically creates defects using the failed tests from the current build",
     "helpMarkDown": "",
     "category": "Build",
@@ -9,25 +9,16 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 12
+        "Patch": 1
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [
     ],
     "inputs": [
-        {
-            "name": "Assignees",
-            "type": "filePath",
-            "label": "Assignees list file",
-            "defaultValue": "assignees.json",
-            "required": false,
-            "helpMarkDown": "Bug assignees list in json format. Format: {\"testrunname\":\"username\"}"
-        }
-        
     ],
     "execution": {
         "Node": {
-            "target": "index.js"
+            "target": "awaitbuilds.js"
         }
     },
     "messages" : {

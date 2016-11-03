@@ -16,7 +16,7 @@
     ],
     "inputs": [
         {
-            "name": "Builds",
+            "name": "buildList",
             "type": "String",
             "label": "Build list",
             "defaultValue": "",
