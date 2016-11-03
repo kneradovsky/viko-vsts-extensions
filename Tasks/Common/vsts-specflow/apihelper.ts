@@ -13,7 +13,7 @@ export class ApiHelper {
     constructor() {
         //inject certificates
         require('ssl-root-cas/latest').inject().addFile(__dirname + '/ssl/GeneralRootCA.cer');
-        let authtype;
+        var authtype;
         console.log(tl.getInput("authtype"));
         switch(tl.getInput("authtype")) {
             case 'PAT' : authtype = vm.getPersonalAccessTokenHandler(tl.getInput("PAT"));break;
@@ -22,6 +22,8 @@ export class ApiHelper {
             default: console.log("Using System.OAuth");authtype = vm.getBearerHandler(tl.getVariable("System.AccessToken")); 
             
         }
+        //OAuth problem check
+        authtype = vm.getNtlmHandler("qa.automation","qa.S`12345678");
         let uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl'); 
         this.webApi =new vm.WebApi(uri,authtype); 
     }
