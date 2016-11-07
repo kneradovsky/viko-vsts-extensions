@@ -22,8 +22,6 @@ export class ApiHelper {
             default: console.log("Using System.OAuth");authtype = vm.getBearerHandler(tl.getVariable("System.AccessToken")); 
             
         }
-        //OAuth problem check
-        authtype = vm.getNtlmHandler("qa.automation","qa.S`12345678");
         let uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl'); 
         this.webApi =new vm.WebApi(uri,authtype); 
     }

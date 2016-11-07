@@ -24,22 +24,30 @@ let api = apihelper.getApi();
 async function run() {
     let projId = tl.getVariable("System.TeamProjectId");
     let buildList = tl.getInput("buildList").split(",");
-    let bapi = api.getBuildApi();
-    //map buildname to build def numbers
-    let defNumbers = (await bapi.getDefinitions(projId)).filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1).map(bdr => bdr.id);
-    let buildNumbers = [];
-    for(let bid of defNumbers) {
-        let bDef =  await bapi.getDefinition(bid,projId);
-        var build:bi.Build = Object.create({definition:{id:bDef.id}});
-        build = await bapi.queueBuild(build,projId);
-        buildNumbers.push(build.id);
+    try {
+        let bapi = api.getBuildApi();
+        //map buildname to build def numbers
+        let defNumbers = (await bapi.getDefinitions(projId)).filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1).map(bdr => bdr.id);
+        let buildNumbers = [];
+        for(let bid of defNumbers) {
+            let bDef =  await bapi.getDefinition(bid,projId);
+            var build:bi.Build = Object.create(null);
+            build.definition=Object.create(null);
+            build.definition.id=bDef.id;
+            build = await bapi.queueBuild(build,projId);
+            buildNumbers.push(build.id);
+        }
+        let builds = buildNumbers.join(",");
+        console.log("Builds: "+builds)
+        tl.setVariable("queuedBuilds",builds);
+    } catch(err) {
+        console.log(err);
+        console.log(err.stack);
+        throw err;
     }
-    let builds = buildNumbers.join(",");
-    console.log("Builds: "+builds)
-    tl.setVariable("queuedBuilds",builds);
 }
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 //tl.setVariable("Build.BuildId","10511");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
