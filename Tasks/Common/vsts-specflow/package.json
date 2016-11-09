@@ -17,9 +17,7 @@
   },
   "homepage": "https://github.com/kneradovsky/SpecFlowTFSExtension#readme",
   "dependencies": {
-    "ssl-root-cas": "^1.2",
-    "vso-node-api": "^5.1",
-    "vsts-task-lib": "^0.9"
+    "ssl-root-cas": "^1.2"
   },
   "devDependencies": {
   }

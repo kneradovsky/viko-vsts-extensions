@@ -1,7 +1,7 @@
 {
-    "id": "af839968-eceb-413b-a3b2-30d384ccd169",
+    "id": "194a0111-9c11-4ff2-8190-ac72c0e92108",
     "name": "ChainBuildsAwaiter",
-    "friendlyName": "ChainBuildsAwaiter",
+    "friendlyName": "Chain Builds Awaiter",
     "description": "Automatically creates defects using the failed tests from the current build",
     "helpMarkDown": "",
     "category": "Build",
@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 2
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [

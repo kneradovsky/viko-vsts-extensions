@@ -1,0 +1,10 @@
+{
+  "loc.friendlyName": "Chain Builds Starter",
+  "loc.helpMarkDown": "",
+  "loc.description": "Automatically creates defects using the failed tests from the current build",
+  "loc.instanceNameFormat": "Creates defects from test results",
+  "loc.input.label.buildList": "Build list",
+  "loc.input.help.buildList": "Comma separated list of the build definition names to start",
+  "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
+  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
+}

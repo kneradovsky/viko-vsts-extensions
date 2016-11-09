@@ -122,10 +122,10 @@ var pathExists = function (checkPath) {
 }
 exports.pathExists = pathExists;
 
-var buildNodeTask = function (taskPath, outDir) {
+var buildNodeTask = function (taskPath, outDir,npmSkip) {
     var originalDir = pwd();
     cd(taskPath);
-    if (test('-f', rp('package.json'))) {
+    if (test('-f', rp('package.json')) && npmSkip!=true) {
         run('npm install');
     }
     if(test('-f',rp('typings.json'))) {

@@ -1,7 +1,7 @@
 {
-    "id": "af839968-eceb-413b-a3b2-30d384ccd169",
+    "id": "77ac150d-b4c7-4628-8272-5385adafbec0",
     "name": "ChainBuildsStarter",
-    "friendlyName": "ChainBuildsStarter",
+    "friendlyName": "Chain Builds Starter",
     "description": "Automatically creates defects using the failed tests from the current build",
     "helpMarkDown": "",
     "category": "Build",
@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 4
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [
@@ -17,7 +17,7 @@
     "inputs": [
         {
             "name": "buildList",
-            "type": "String",
+            "type": "string",
             "label": "Build list",
             "defaultValue": "",
             "required": true,

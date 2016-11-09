@@ -1,6 +1,6 @@
 {
-  "id": "af839968-eceb-413b-a3b2-30d384ccd169",
-  "name": "ChainBuildsStarter",
+  "id": "194a0111-9c11-4ff2-8190-ac72c0e92108",
+  "name": "ChainBuildsAwaiter",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "helpMarkDown": "ms-resource:loc.helpMarkDown",
@@ -9,23 +9,14 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 8
+    "Patch": 2
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
-  "inputs": [
-    {
-      "name": "Assignees",
-      "type": "filePath",
-      "label": "ms-resource:loc.input.label.Assignees",
-      "defaultValue": "assignees.json",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.Assignees"
-    }
-  ],
+  "inputs": [],
   "execution": {
     "Node": {
-      "target": "index.js"
+      "target": "awaitbuilds.js"
     }
   },
   "messages": {

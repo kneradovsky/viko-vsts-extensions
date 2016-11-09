@@ -180,7 +180,7 @@ target.build = function() {
                     if ((mod.type === 'node' && mod.compile == true) || test('-f', path.join(modPath, 'tsconfig.json'))) {
                         //copy tsconfig from __dirname to the task folder
                         cp('-f',path.join(__dirname,'tsconfig.json'),modPath);
-                        buildNodeTask(modPath, modOutDir);
+                        buildNodeTask(modPath, modOutDir,true);
                         rm('-f',path.join(modPath,'tsconfig.json'));
                     }
 
@@ -226,7 +226,14 @@ target.build = function() {
 
         // build Node task
         if (shouldBuildNode) {
-            buildNodeTask(taskPath, outDir);
+            if(options.skipNpm) {
+                //copy project wide node_modules to the task folder
+                if(test('-d',path.join(__dirname,'node_modules')))
+                    cp('-r',path.join(__dirname,'node_modules'),taskPath); 
+                else options.skipNpm=false;
+            }
+            
+            buildNodeTask(taskPath, outDir,options.skipNpm);
         }
 
         // build PowerShell3 task
@@ -470,7 +477,7 @@ target.makeExtensions = function() {
     extList.forEach(function(taskName) {
         var taskPath = path.join(__dirname, 'Tasks', taskName);
         var defaultImage = path.join(__dirname,'assets','extension-icon.png');
-        var manifestTemplate = path.join(__dirname,'assets','vss-extension-template.json');
+        var manifestTemplateFile = path.join(__dirname,'assets','vss-extension-template.json');
         ensureExists(taskPath);
         // load the task.json
         var outDir;
@@ -478,14 +485,16 @@ target.makeExtensions = function() {
         var taskPackageJsonPath = path.join(taskPath, 'package.json');
         if (test('-f', taskJsonPath)) {
             var taskDef = require(taskJsonPath);
-            var manifest = require(manifestTemplate);
-            var taskPkg = require(taskPackageJsonPath);
+            var manifest = JSON.parse(fs.readFileSync(manifestTemplateFile));
+            var taskPkg = JSON.parse(fs.readFileSync(taskPackageJsonPath));
             console.log('Creating manifest for task: '+taskDef.name);            
             manifest.version=`${taskDef.version.Major}.${taskDef.version.Minor}.${taskDef.version.Patch}`;
             manifest.id=manifest.id+'-'+taskDef.name;
             manifest.name=manifest.name+' '+taskDef.friendlyName;
             manifest.files[0].path=taskDef.name;
             manifest.contributions[0].id=taskPkg.name;
+            manifest.contributions[0].properties.name=taskDef.name;
+            manifest.contributions[0].properties.friendlyName=taskDef.friendlyName;
             var iconPath=path.join(buildPath,taskName,'icon.png');
             if(test('-f',iconPath)) {
                 manifest.icons.default='icon.png';
@@ -496,7 +505,7 @@ target.makeExtensions = function() {
             console.log(iconPath);
             console.log(buildPath);
             cp('-f',iconPath,buildPath);
-            var manifestContent = JSON.stringify(manifest,null,4); 
+            manifestContent = JSON.stringify(manifest,null,4); 
             console.log(manifestContent);
             fs.writeFileSync(path.join(buildPath,'vss-extension.json'),manifestContent);
             var curdir = __dirname;

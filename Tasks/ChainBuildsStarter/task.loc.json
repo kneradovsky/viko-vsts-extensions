@@ -1,5 +1,5 @@
 {
-  "id": "af839968-eceb-413b-a3b2-30d384ccd169",
+  "id": "77ac150d-b4c7-4628-8272-5385adafbec0",
   "name": "ChainBuildsStarter",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
@@ -9,23 +9,23 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 8
+    "Patch": 4
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
   "inputs": [
     {
-      "name": "Assignees",
-      "type": "filePath",
-      "label": "ms-resource:loc.input.label.Assignees",
-      "defaultValue": "assignees.json",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.Assignees"
+      "name": "buildList",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.buildList",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.buildList"
     }
   ],
   "execution": {
     "Node": {
-      "target": "index.js"
+      "target": "queuebuilds.js"
     }
   },
   "messages": {
