@@ -50,7 +50,7 @@ async function processTestRun(testRun:ti.TestRun) {
             endTime: tres.completedDate.toISOString()            
         });
     }
-    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}_${testRun.id}.trx`);
+    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}-${testRun.id}.trx`);
     fs.writeFileSync(filepath,run.toXml());
     testPublisher.publish(filepath,"false",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name,"false");
 }
@@ -65,49 +65,50 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
             continue;
         }
         //build completed store results
-        console.log(`processing build ${build.definition.name}`);
+        console.log(tl.loc("loc.messages.processingBuild",build.definition.name));
         var testRuns = await api.getTestApi().getTestRuns(projId,`vstfs:///Build/Build/${buildId}`);
         for(var testRun of testRuns) {
-            console.log(`Processing test run : ${testRun.name}`);
+            console.log(tl.loc("loc.messages.processingRun",testRun.name));
             var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id); 
-            processTestRun(testRunDetailed);  
+            processTestRun(testRunDetailed); 
         }
     }
     return remainBuilds;    
 }
 
 async function run() {
+    tl.setResourcePath(path.join(__dirname, 'task.json'));
     projId = tl.getVariable("System.TeamProjectId");
     let strBuildList = tl.getVariable("queuedBuilds");
 
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
 
-    console.log("queuedBuilds : "+strBuildList);
+    console.log(tl.loc("loc.messages.queuedBuilds",strBuildList));
     try {
         var buildList = strBuildList.split(",").map(e => Number.parseInt(e));
         let bapi = api.getBuildApi();
         while(buildList.length>0) {
             buildList = await processBuilds(buildList);
-            console.log(`${buildList.length} left to wait`);
+            console.log(tl.loc("loc.messages.buildsToWait",buildList.length));
             if(buildList.length>0) {
-                console.log("Sleeping 30 seconds between iterations");
+                console.log(tl.loc("loc.messages.sleeping",30));
                 await new Promise(resolve => setTimeout(resolve,30000));
             }
         }
     } catch (err) {
         console.log(err);
-        console.log(err.stack);
+        tl.debug(err.stack);
         throw err;        
     }
 
 
 }
 
-/*
+
 tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 tl.setVariable("queuedBuilds","10716");
 tl.setVariable("Agent.BuildDirectory","/dev/temp/");
-*/
+
 run()
-.then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
-.catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))
+.then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("loc.message.taskSucceeded")))
+.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("loc.message.taskFailed")))

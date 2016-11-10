@@ -125,7 +125,7 @@ exports.pathExists = pathExists;
 var buildNodeTask = function (taskPath, outDir,npmSkip) {
     var originalDir = pwd();
     cd(taskPath);
-    if (test('-f', rp('package.json')) && npmSkip!=true) {
+    if (test('-f', rp('package.json')) && !npmSkip) {
         run('npm install');
     }
     if(test('-f',rp('typings.json'))) {

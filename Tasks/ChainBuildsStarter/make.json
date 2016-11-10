@@ -1,9 +1,4 @@
 {
     "common": [
-        {
-            "module": "../Common/vsts-specflow",
-            "type": "node",
-            "compile": true
-        }
     ]
 }

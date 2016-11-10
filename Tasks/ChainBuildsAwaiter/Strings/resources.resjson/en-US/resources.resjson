@@ -1,8 +1,8 @@
 {
   "loc.friendlyName": "Chain Builds Awaiter",
   "loc.helpMarkDown": "",
-  "loc.description": "Automatically creates defects using the failed tests from the current build",
-  "loc.instanceNameFormat": "Creates defects from test results",
+  "loc.description": "Awaits builds mentioned in the queuedBuilds variable. It publishes test results from that builds",
+  "loc.instanceNameFormat": "Awaits queued builds",
   "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
   "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
 }

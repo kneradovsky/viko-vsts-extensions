@@ -9,10 +9,16 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 15
+    "Patch": 18
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
-  "groups": [],
+  "groups": [
+    {
+      "name": "authentication",
+      "displayName": "ms-resource:loc.group.displayName.authentication",
+      "isExpanded": false
+    }
+  ],
   "inputs": [
     {
       "name": "Assignees",
@@ -21,6 +27,40 @@
       "defaultValue": "assignees.json",
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.Assignees"
+    },
+    {
+      "name": "authtype",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.authtype",
+      "defaultValue": "oauth",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.authtype",
+      "options": {
+        "oauth": "System OAuth",
+        "NTLM": "NTLM Auth",
+        "Basic": "Basic Auth"
+      },
+      "groupName": "authentication"
+    },
+    {
+      "name": "Username",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.Username",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.Username",
+      "groupName": "authentication",
+      "visibilityRule": "authtype = NTLM or authtype = Basic"
+    },
+    {
+      "name": "Password",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.Password",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.Password",
+      "groupName": "authentication",
+      "visibilityRule": "authtype = NTLM or authtype = Basic"
     }
   ],
   "execution": {

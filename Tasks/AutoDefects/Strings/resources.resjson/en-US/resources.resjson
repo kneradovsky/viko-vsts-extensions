@@ -3,8 +3,15 @@
   "loc.helpMarkDown": "",
   "loc.description": "Automatically creates defects using the failed tests from the current build",
   "loc.instanceNameFormat": "Creates defects from test results",
+  "loc.group.displayName.authentication": "Authentication",
   "loc.input.label.Assignees": "Assignees list file",
   "loc.input.help.Assignees": "Bug assignees list in json format. Format: {\"testrunname\":\"username\"}",
+  "loc.input.label.authtype": "Authentication type",
+  "loc.input.help.authtype": "Authentication type to access the tfs rest api",
+  "loc.input.label.Username": "Username",
+  "loc.input.help.Username": "Username to access tfs rest api (NTLM and Basic types)",
+  "loc.input.label.Password": "Password",
+  "loc.input.help.Password": "Password to access tfs rest api (NTLM and Basic types)",
   "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
   "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
 }

@@ -22,6 +22,7 @@ let api = apihelper.getApi();
 
 
 async function run() {
+    tl.setResourcePath(path.join(__dirname, 'task.json'));
     let projId = tl.getVariable("System.TeamProjectId");
     let buildList = tl.getInput("buildList").split(",");
     try {
@@ -38,7 +39,7 @@ async function run() {
             buildNumbers.push(build.id);
         }
         let builds = buildNumbers.join(",");
-        console.log("Builds: "+builds)
+        console.log(tl.loc("loc.messages.Builds")+builds)
         tl.setVariable("queuedBuilds",builds);
     } catch(err) {
         console.log(err);
@@ -47,8 +48,8 @@ async function run() {
     }
 }
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 //tl.setVariable("Build.BuildId","10511");
 run()
-.then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
-.catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))
+.then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("loc.message.taskSucceeded")))
+.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("loc.message.taskFailed")))

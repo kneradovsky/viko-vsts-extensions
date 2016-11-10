@@ -2,16 +2,16 @@
     "id": "77ac150d-b4c7-4628-8272-5385adafbec0",
     "name": "ChainBuildsStarter",
     "friendlyName": "Chain Builds Starter",
-    "description": "Automatically creates defects using the failed tests from the current build",
+    "description": "Starts builds entered in the Build List parameter",
     "helpMarkDown": "",
     "category": "Build",
     "author": "kneradovsky",
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 4
+        "Patch": 5
     },
-    "instanceNameFormat": "Creates defects from test results",
+    "instanceNameFormat": "Starts builds: $(buildList)",
     "groups": [
     ],
     "inputs": [

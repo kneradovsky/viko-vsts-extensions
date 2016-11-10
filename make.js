@@ -228,9 +228,15 @@ target.build = function() {
         if (shouldBuildNode) {
             if(options.skipNpm) {
                 //copy project wide node_modules to the task folder
-                if(test('-d',path.join(__dirname,'node_modules')))
-                    cp('-r',path.join(__dirname,'node_modules'),taskPath); 
-                else options.skipNpm=false;
+                console.log(path.join(__dirname,'node_modules'));
+                if(test('-d',path.join(__dirname,'node_modules'))) {
+                    console.log("copying node_modules")
+                    cp('-r',path.join(__dirname,'node_modules'),taskPath);
+                } 
+                else {
+
+                    options.skipNpm=false;
+                }
             }
             
             buildNodeTask(taskPath, outDir,options.skipNpm);

@@ -2,16 +2,16 @@
     "id": "194a0111-9c11-4ff2-8190-ac72c0e92108",
     "name": "ChainBuildsAwaiter",
     "friendlyName": "Chain Builds Awaiter",
-    "description": "Automatically creates defects using the failed tests from the current build",
+    "description": "Awaits builds mentioned in the queuedBuilds variable. It publishes test results from that builds",
     "helpMarkDown": "",
     "category": "Build",
     "author": "kneradovsky",
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 2
+        "Patch": 4
     },
-    "instanceNameFormat": "Creates defects from test results",
+    "instanceNameFormat": "Awaits queued builds",
     "groups": [
     ],
     "inputs": [

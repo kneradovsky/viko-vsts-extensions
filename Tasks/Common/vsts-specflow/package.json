@@ -1,7 +1,7 @@
 {
   "name": "vsts-specflow",
   "version": "1.0.0",
-  "description": "",
+  "description": "SpecFlow helpers for vsts tasks",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
