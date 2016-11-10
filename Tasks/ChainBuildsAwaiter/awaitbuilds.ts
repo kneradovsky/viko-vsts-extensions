@@ -105,9 +105,9 @@ async function run() {
 }
 
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("queuedBuilds","10716");
-tl.setVariable("Agent.BuildDirectory","/dev/temp/");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("queuedBuilds","10716");
+//tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("loc.message.taskSucceeded")))

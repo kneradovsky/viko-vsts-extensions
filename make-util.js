@@ -582,6 +582,11 @@ var createResjson = function (task, taskPath) {
     }
 
     var resjsonPath = path.join(taskPath, 'Strings', 'resources.resjson', 'en-US', 'resources.resjson');
+    if(test('-f',resjsonPath)) {
+        console.log("merging localization resources");
+        var resjson = JSON.parse(fs.readFileSync(resjsonPath));
+        Object.assign(resources,resjson);
+    }
     mkdir('-p', path.dirname(resjsonPath));
     fs.writeFileSync(resjsonPath, JSON.stringify(resources, null, 2));
 };

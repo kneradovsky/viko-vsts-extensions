@@ -4,5 +4,12 @@
   "loc.description": "Awaits builds mentioned in the queuedBuilds variable. It publishes test results from that builds",
   "loc.instanceNameFormat": "Awaits queued builds",
   "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
-  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
+  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n ",
+  "loc.messages.processingBuild" : "Processing build %s",
+  "loc.messages.processingRun" : "Processing test run %s",
+  "loc.messages.queuedBuilds" : "Queued Builds %s",
+  "loc.messages.buildsToWait" : "Builds to wait: %s",
+  "loc.messages.sleeping" : "Sleeping %d between iteration",
+  "loc.message.taskSucceeded" : "All done",
+  "loc.message.taskFailed" : "Task Failed"
 }

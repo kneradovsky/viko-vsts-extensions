@@ -6,5 +6,8 @@
   "loc.input.label.buildList": "Build list",
   "loc.input.help.buildList": "Comma separated list of the build definition names to start",
   "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
-  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
+  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n ",
+  "loc.message.taskSucceeded" : "All done",
+  "loc.message.taskFailed" : "Task Failed",
+  "loc.messages.Builds" : "Queued builds"
 }

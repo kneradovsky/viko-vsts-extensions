@@ -39,7 +39,7 @@ async function run() {
             buildNumbers.push(build.id);
         }
         let builds = buildNumbers.join(",");
-        console.log(tl.loc("loc.messages.Builds")+builds)
+        console.log(tl.loc("loc.messages.Builds",builds)
         tl.setVariable("queuedBuilds",builds);
     } catch(err) {
         console.log(err);
