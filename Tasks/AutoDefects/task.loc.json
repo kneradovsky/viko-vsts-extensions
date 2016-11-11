@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 18
+    "Patch": 19
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [
@@ -36,9 +36,9 @@
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.authtype",
       "options": {
-        "oauth": "System OAuth",
-        "NTLM": "NTLM Auth",
-        "Basic": "Basic Auth"
+        "oauth": "OAuth",
+        "NTLM": "NTLM",
+        "Basic": "Basic"
       },
       "groupName": "authentication"
     },
@@ -50,7 +50,7 @@
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.Username",
       "groupName": "authentication",
-      "visibilityRule": "authtype = NTLM or authtype = Basic"
+      "visibilityRule": "authtype != OAuth"
     },
     {
       "name": "Password",
@@ -60,7 +60,7 @@
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.Password",
       "groupName": "authentication",
-      "visibilityRule": "authtype = NTLM or authtype = Basic"
+      "visibilityRule": "authtype != OAuth"
     }
   ],
   "execution": {
@@ -68,8 +68,5 @@
       "target": "index.js"
     }
   },
-  "messages": {
-    "FeatureTemplate": "ms-resource:loc.messages.FeatureTemplate",
-    "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate"
-  }
+  "messages": {}
 }

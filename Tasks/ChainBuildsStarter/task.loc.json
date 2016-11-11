@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 5
+    "Patch": 9
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
@@ -29,7 +29,9 @@
     }
   },
   "messages": {
-    "FeatureTemplate": "ms-resource:loc.messages.FeatureTemplate",
-    "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate"
+    "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate",
+    "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
+    "taskFailed": "ms-resource:loc.messages.taskFailed",
+    "Builds": "ms-resource:loc.messages.Builds"
   }
 }

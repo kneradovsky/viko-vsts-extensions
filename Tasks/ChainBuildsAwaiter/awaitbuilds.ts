@@ -24,6 +24,7 @@ let apihelper = new ApiHelper();
 let api = apihelper.getApi();
 var projId = null;
 let testPublisher  = new tl.TestPublisher("VSTest");
+var passedTests=0,totalTests=0;
 
 async function processTestRun(testRun:ti.TestRun) {
     var testResults = await api.getTestApi().getTestResults(projId,testRun.id);
@@ -65,36 +66,49 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
             continue;
         }
         //build completed store results
-        console.log(tl.loc("loc.messages.processingBuild",build.definition.name));
+        console.log(tl.loc("processingBuild",build.definition.name));
         var testRuns = await api.getTestApi().getTestRuns(projId,`vstfs:///Build/Build/${buildId}`);
         for(var testRun of testRuns) {
-            console.log(tl.loc("loc.messages.processingRun",testRun.name));
+            console.log(tl.loc("processingRun",testRun.name));
             var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id); 
-            processTestRun(testRunDetailed); 
+            processTestRun(testRunDetailed);
+            console.log(tl.loc("testRunOutcome",testRun.totalTests,testRun.passedTests));
+            passedTests+=testRun.passedTests;
+            totalTests+=testRun.totalTests;
         }
     }
+
     return remainBuilds;    
 }
 
-async function run() {
+async function run() : Promise<number>{
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     projId = tl.getVariable("System.TeamProjectId");
     let strBuildList = tl.getVariable("queuedBuilds");
 
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
 
-    console.log(tl.loc("loc.messages.queuedBuilds",strBuildList));
+    console.log(tl.loc("queuedBuilds",strBuildList));
     try {
         var buildList = strBuildList.split(",").map(e => Number.parseInt(e));
         let bapi = api.getBuildApi();
+        for(let bid of buildList) {
+            let build = await bapi.getBuild(bid,projId);
+            tl.warning(`Build ${build.definition.name} - ${build.url}`);
+        }
         while(buildList.length>0) {
             buildList = await processBuilds(buildList);
-            console.log(tl.loc("loc.messages.buildsToWait",buildList.length));
+            console.log(tl.loc("buildsToWait",buildList.length));
             if(buildList.length>0) {
-                console.log(tl.loc("loc.messages.sleeping",30));
+                console.log(tl.loc("sleeping",30));
                 await new Promise(resolve => setTimeout(resolve,30000));
             }
         }
+        //1 - passed, 2 - passed with issues, 3 - failed
+        let result = passedTests==totalTests ? 1 : passedTests==0 ? 3 : 2;
+        let res = Q.defer<number>();
+        res.resolve(result);
+        return res.promise;
     } catch (err) {
         console.log(err);
         tl.debug(err.stack);
@@ -110,5 +124,10 @@ async function run() {
 //tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
-.then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("loc.message.taskSucceeded")))
-.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("loc.message.taskFailed")))
+.then(r => {switch(r) {
+    case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;
+    case 2: tl._writeLine("##vso[task.complete result=SucceededWithIssues;]");break;
+    case 3: 
+    default: tl.setResult(tl.TaskResult.Failed,tl.loc("taskSucceeded"));
+}})
+.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed")))

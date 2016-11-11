@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 4
+    "Patch": 10
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
@@ -20,7 +20,12 @@
     }
   },
   "messages": {
-    "FeatureTemplate": "ms-resource:loc.messages.FeatureTemplate",
-    "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate"
+    "processingBuild": "ms-resource:loc.messages.processingBuild",
+    "processingRun": "ms-resource:loc.messages.processingRun",
+    "queuedBuilds": "ms-resource:loc.messages.queuedBuilds",
+    "buildsToWait": "ms-resource:loc.messages.buildsToWait",
+    "sleeping": "ms-resource:loc.messages.sleeping",
+    "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
+    "taskFailed": "ms-resource:loc.messages.taskFailed"
   }
 }

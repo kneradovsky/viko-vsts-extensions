@@ -11,7 +11,5 @@
   "loc.input.label.Username": "Username",
   "loc.input.help.Username": "Username to access tfs rest api (NTLM and Basic types)",
   "loc.input.label.Password": "Password",
-  "loc.input.help.Password": "Password to access tfs rest api (NTLM and Basic types)",
-  "loc.messages.FeatureTemplate": "#language: en-US \n Feature: %s \n ",
-  "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n "
+  "loc.input.help.Password": "Password to access tfs rest api (NTLM and Basic types)"
 }

@@ -102,8 +102,8 @@ async function run() {
     }
 }
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("Build.BuildId","10879");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("Build.BuildId","10941");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
 .catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))

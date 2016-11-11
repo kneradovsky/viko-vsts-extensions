@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 18
+        "Patch": 19
     },
     "instanceNameFormat": "Creates defects from test results",
     "groups": [
@@ -37,9 +37,9 @@
             "required": false,
             "helpMarkDown": "Authentication type to access the tfs rest api",
             "options": {
-                "oauth": "System OAuth",
-                "NTLM": "NTLM Auth",
-                "Basic": "Basic Auth"
+                "oauth": "OAuth",
+                "NTLM": "NTLM",
+                "Basic": "Basic"
             },
             "groupName" : "authentication"
         },
@@ -51,7 +51,7 @@
             "required": false,
             "helpMarkDown": "Username to access tfs rest api (NTLM and Basic types)",
             "groupName" : "authentication",
-            "visibilityRule" : "authtype = NTLM or authtype = Basic"
+            "visibilityRule" : "authtype != OAuth"
         },
         {
             "name": "Password",
@@ -61,7 +61,7 @@
             "required": false,
             "helpMarkDown": "Password to access tfs rest api (NTLM and Basic types)",
             "groupName" : "authentication",
-            "visibilityRule" : "authtype = NTLM or authtype = Basic"
+            "visibilityRule" : "authtype != OAuth"
         }
 
     ],
@@ -71,8 +71,6 @@
         }
     },
     "messages" : {
-        "FeatureTemplate" : "#language: en-US \n Feature: %s \n ",
-        "ScenarioTemplate" : "Scenario: %s_%s \n %s \n "        
     }
 
 }

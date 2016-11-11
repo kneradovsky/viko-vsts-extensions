@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 4
+        "Patch": 11
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
@@ -22,8 +22,13 @@
         }
     },
     "messages" : {
-        "FeatureTemplate" : "#language: en-US \n Feature: %s \n ",
-        "ScenarioTemplate" : "Scenario: %s_%s \n %s \n "        
+        "processingBuild": "Processing build %s",
+        "processingRun": "Processing test run %s",
+        "queuedBuilds": "Queued Builds %s",
+        "buildsToWait": "Builds to wait: %s",
+        "sleeping": "Sleeping %d between iteration",
+        "taskSucceeded": "All done",
+        "taskFailed": "Task Failed"
     }
 
 }

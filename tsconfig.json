@@ -4,5 +4,14 @@
         "target": "ES6",
         "module": "commonjs",
         "sourceMap": true
-    }
+    },
+    "include" : [
+        "**/*.*"
+    ],
+    "exclude": [
+        "node_modules",
+        "Tests",
+        "**/*.spec.ts"
+    ]
+
 }

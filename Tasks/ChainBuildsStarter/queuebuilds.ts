@@ -39,7 +39,7 @@ async function run() {
             buildNumbers.push(build.id);
         }
         let builds = buildNumbers.join(",");
-        console.log(tl.loc("loc.messages.Builds",builds)
+        console.log(tl.loc("Builds",builds));
         tl.setVariable("queuedBuilds",builds);
     } catch(err) {
         console.log(err);
@@ -51,5 +51,5 @@ async function run() {
 //tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 //tl.setVariable("Build.BuildId","10511");
 run()
-.then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("loc.message.taskSucceeded")))
-.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("loc.message.taskFailed")))
+.then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded")))
+.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed")))
