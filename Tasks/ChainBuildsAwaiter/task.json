@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 11
+        "Patch": 13
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
@@ -28,7 +28,8 @@
         "buildsToWait": "Builds to wait: %s",
         "sleeping": "Sleeping %d between iteration",
         "taskSucceeded": "All done",
-        "taskFailed": "Task Failed"
+        "taskFailed": "Task Failed",
+        "testRunOutcome" : "Test run outcome, total tests: %s, passed: %s"
     }
 
 }

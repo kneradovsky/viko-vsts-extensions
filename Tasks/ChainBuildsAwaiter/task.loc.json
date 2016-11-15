@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 10
+    "Patch": 13
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
@@ -26,6 +26,7 @@
     "buildsToWait": "ms-resource:loc.messages.buildsToWait",
     "sleeping": "ms-resource:loc.messages.sleeping",
     "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
-    "taskFailed": "ms-resource:loc.messages.taskFailed"
+    "taskFailed": "ms-resource:loc.messages.taskFailed",
+    "testRunOutcome": "ms-resource:loc.messages.testRunOutcome"
   }
 }

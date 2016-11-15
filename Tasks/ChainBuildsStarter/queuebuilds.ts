@@ -36,6 +36,7 @@ async function run() {
             build.definition=Object.create(null);
             build.definition.id=bDef.id;
             build = await bapi.queueBuild(build,projId);
+            console.log(tl.loc("queueBuild",bDef.name));
             buildNumbers.push(build.id);
         }
         let builds = buildNumbers.join(",");

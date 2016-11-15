@@ -501,10 +501,8 @@ target.makeExtensions = function() {
             manifest.contributions[0].id=taskPkg.name;
             manifest.contributions[0].properties.name=taskDef.name;
             manifest.contributions[0].properties.friendlyName=taskDef.friendlyName;
-            var iconPath=path.join(buildPath,taskName,'icon.png');
-            if(test('-f',iconPath)) {
-                manifest.icons.default='icon.png';
-            } else {
+            var iconPath=path.join(buildPath,taskName,'extension-icon.png');
+            if(!test('-f',iconPath)) {
                 manifest.icons.default='extension-icon.png';
                 iconPath=defaultImage;
             }
@@ -512,7 +510,7 @@ target.makeExtensions = function() {
             console.log(buildPath);
             cp('-f',iconPath,buildPath);
             manifestContent = JSON.stringify(manifest,null,4); 
-            console.log(manifestContent);
+            //console.log(manifestContent);
             fs.writeFileSync(path.join(buildPath,'vss-extension.json'),manifestContent);
             var curdir = __dirname;
             cd(buildPath);

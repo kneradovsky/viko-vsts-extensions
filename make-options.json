@@ -10,7 +10,7 @@
         "*.psm1",
         "*.sh",
         "*.txt",
-        "icon.png",
+        "*.png",
         "icon.svg",
         "module.json",
         "node_modules",

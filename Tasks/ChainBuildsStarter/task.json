@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 9
+        "Patch": 11
     },
     "instanceNameFormat": "Starts builds: $(buildList)",
     "groups": [
@@ -34,7 +34,8 @@
         "ScenarioTemplate": "Scenario: %s_%s \n %s \n ",
         "taskSucceeded": "All done",
         "taskFailed": "Task Failed",
-        "Builds": "Queued builds %s"
+        "Builds": "Queued builds %s",
+        "queueBuild": "started build %s"
     }
 
 }

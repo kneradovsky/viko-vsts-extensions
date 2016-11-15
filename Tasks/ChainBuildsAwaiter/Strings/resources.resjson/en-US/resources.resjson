@@ -9,5 +9,6 @@
   "loc.messages.buildsToWait": "Builds to wait: %s",
   "loc.messages.sleeping": "Sleeping %d between iteration",
   "loc.messages.taskSucceeded": "All done",
-  "loc.messages.taskFailed": "Task Failed"
+  "loc.messages.taskFailed": "Task Failed",
+  "loc.messages.testRunOutcome": "Test run outcome, total tests: %s, passed: %s"
 }
