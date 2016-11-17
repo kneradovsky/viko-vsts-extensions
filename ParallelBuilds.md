@@ -4,8 +4,8 @@ Parallel Builds extension provides tasks to start builds in parallel, wait for t
 
 ## Parallel Builds tasks
 The extenstion provides two task to manage parallel/chain builds. Tasks use the OAuth authentication - you need to set _Allow Scripts to acccess OAuth token_ flag on the build options page. 
-![screenshot](https://raw.githubusercontent.com/kneradovsky/master/assets/oauthToken.png)
 
+![screenshot](https://github.com/kneradovsky/viko-vsts-extensions/blob/master/assets/oauthToken.png?raw=true)
 1. Chain Builds Starter
 The task starts build from the buildList parameter. The __buildList__ is the comma-separated list of the build definitions to start. 
 The __Starter__ queues builds using their default settings.
