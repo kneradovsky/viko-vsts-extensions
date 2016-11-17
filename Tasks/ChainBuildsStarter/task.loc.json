@@ -9,7 +9,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 10
+    "Patch": 11
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "groups": [],
@@ -32,6 +32,7 @@
     "ScenarioTemplate": "ms-resource:loc.messages.ScenarioTemplate",
     "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
     "taskFailed": "ms-resource:loc.messages.taskFailed",
-    "Builds": "ms-resource:loc.messages.Builds"
+    "Builds": "ms-resource:loc.messages.Builds",
+    "queueBuild": "ms-resource:loc.messages.queueBuild"
   }
 }

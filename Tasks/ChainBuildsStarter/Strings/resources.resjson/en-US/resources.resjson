@@ -8,5 +8,6 @@
   "loc.messages.ScenarioTemplate": "Scenario: %s_%s \n %s \n ",
   "loc.messages.taskSucceeded": "All done",
   "loc.messages.taskFailed": "Task Failed",
-  "loc.messages.Builds": "Queued builds %s"
+  "loc.messages.Builds": "Queued builds %s",
+  "loc.messages.queueBuild": "started build %s"
 }
