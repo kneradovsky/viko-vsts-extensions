@@ -14,8 +14,22 @@
     "categories": [
         "Build and release"
     ],
+    "branding": {
+            "color": "rgb(34, 34, 34)",
+            "theme": "dark"
+    },
+    "content": {
+        "details": {
+            "path": "ParallelBuilds.md"
+        }
+    },
+    "screenshots": [
+        {
+            "path": "assets/buildStarter.png"
+        }
+    ],            
     "icons": {
-        "default": "extension-icon.png"        
+        "default": "assets/extension-icon.png"        
     },
     "files": [
         {
