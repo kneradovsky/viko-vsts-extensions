@@ -51,7 +51,7 @@ async function processTestRun(testRun:ti.TestRun) {
             endTime: tres.completedDate.toISOString()            
         });
     }
-    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}-${testRun.id}.trx`);
+    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}.trx`);
     fs.writeFileSync(filepath,run.toXml());
     testPublisher.publish(filepath,"false",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name,"false");
 }
@@ -85,23 +85,27 @@ async function run() : Promise<number>{
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     projId = tl.getVariable("System.TeamProjectId");
     let strBuildList = tl.getVariable("queuedBuilds");
-
+    let sleepBetweenIters = Number.parseInt(tl.getInput("sleepBetweenIters"));
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
-
     console.log(tl.loc("queuedBuilds",strBuildList));
     try {
         var buildList = strBuildList.split(",").map(e => Number.parseInt(e));
         let bapi = api.getBuildApi();
+        //generate .md file for the summary page
+        var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`buildList.md`);
+        var dataStr="";
         for(let bid of buildList) {
             let build = await bapi.getBuild(bid,projId);
-            tl.warning(`Build ${build.definition.name} - ${build.url}`);
+            dataStr+=`[Build ${build.definition.name}](${build._links.web.href})\n`;
         }
+        fs.writeFileSync(filepath,dataStr);
+        tl._writeLine("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Original Builds;]"+filepath);
         while(buildList.length>0) {
             buildList = await processBuilds(buildList);
             console.log(tl.loc("buildsToWait",buildList.length));
             if(buildList.length>0) {
-                console.log(tl.loc("sleeping",30));
-                await new Promise(resolve => setTimeout(resolve,30000));
+                console.log(tl.loc("sleeping",sleepBetweenIters));
+                await new Promise(resolve => setTimeout(resolve,sleepBetweenIters*1000));
             }
         }
         //1 - passed, 2 - passed with issues, 3 - failed

@@ -2,8 +2,9 @@
     "manifestVersion": 1,
     "id": "viko-build-tasks",
     "name": "Parallel Builds",
-    "version": "1.0.5",
+    "version": "1.0.10",
     "publisher": "kneradovsky",
+    "public" : true,
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
@@ -15,12 +16,15 @@
         "Build and release"
     ],
     "branding": {
-            "color": "rgb(34, 34, 34)",
+            "color": "rgb(7, 97, 186)",
             "theme": "dark"
     },
     "content": {
         "details": {
             "path": "ParallelBuilds.md"
+        },
+        "overview": {
+            "path": "overview.md"
         }
     },
     "screenshots": [
