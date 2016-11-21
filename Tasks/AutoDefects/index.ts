@@ -50,7 +50,7 @@ async function createBug(apihelper:ApiHelper, build:bi.Build, result:ti.TestCase
         "Priority": "High"
     }
     //find runName from assignees that prefixes the current run name
-    let runName = Object.getOwnPropertyNames(assignees).find(e => runName.startsWith(e)) || 'default';
+    let runName = Object.getOwnPropertyNames(assignees).find(e => result.testRun.name.startsWith(e)) || 'default';
     let WorkItemFields = {
         //"System.AreaId":Number.parseInt(result.area.id),
         "System.TeamProject":result.project.name,
