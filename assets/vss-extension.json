@@ -1,35 +1,54 @@
 {
     "manifestVersion": 1,
-    "id": "build-tasks",
-    "name": "OpenBank Build Tools",
-    "version": "0.0.4",
+    "id": "viko-build-tasks",
+    "name": "Parallel Builds",
+    "version": "1.0.11",
     "publisher": "kneradovsky",
+    "public" : true,
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
         }
     ],    
-    "description": "Tools for building, testing and deployment. Includes build tasks.",
+    "description": "Tools for building, testing and deployment. Includes build tasks for queueing builds and waiting for them.",
+    "homepage": "https://github.com/kneradovsky/viko-vsts-extensions/blob/master/ParallelBuilds.md",
     "categories": [
         "Build and release"
     ],
+    "branding": {
+            "color": "rgb(7, 97, 186)",
+            "theme": "dark"
+    },
+    "content": {
+        "details": {
+            "path": "ParallelBuilds.md"
+        },
+        "overview": {
+            "path": "overview.md"
+        }
+    },
+    "screenshots": [
+        {
+            "path": "assets/buildStarter.png"
+        }
+    ],            
     "icons": {
-        "default": "extension-icon.png"        
+        "default": "assets/extension-icon.png"        
     },
     "files": [
         {
             "path": "AutoDefects"
         },
         {
-            "path": "SpecFlowFeatures"
+            "path": "ChainBuildsStarter"
         },
         {
-            "path": "SpecFlowResults"
+            "path": "ChainBuildsAwaiter"
         }
     ],
     "contributions": [
         {
-            "id": "openbank-buildtasks-autodefects",
+            "id": "vsts-openbank-autodefects",
             "type": "ms.vss-distributed-task.task",
             "targets": [
                 "ms.vss-distributed-task.tasks"
@@ -39,23 +58,23 @@
             }
         },
         {
-            "id": "openbank-buildtasks-specflowfeatures",
+            "id": "vsts-openbank-chainbuilds-awaiter",
             "type": "ms.vss-distributed-task.task",
             "targets": [
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "SpecFlowFeatures"
+                "name": "ChainBuildsAwaiter"
             }
         },
         {
-            "id": "openbank-buildtasks-specflowresults",
+            "id": "vsts-openbank-chainbuilds-starter",
             "type": "ms.vss-distributed-task.task",
             "targets": [
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "SpecFlowResults"
+                "name": "ChainBuildsStarter"
             }
         }
     ]

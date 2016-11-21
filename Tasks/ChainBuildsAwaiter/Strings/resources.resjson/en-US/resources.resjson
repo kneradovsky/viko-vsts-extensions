@@ -3,6 +3,8 @@
   "loc.helpMarkDown": "",
   "loc.description": "Awaits builds mentioned in the queuedBuilds variable. It publishes test results from that builds",
   "loc.instanceNameFormat": "Awaits queued builds",
+  "loc.input.label.sleepBetweenIters": "Seconds to sleep between queue check",
+  "loc.input.help.sleepBetweenIters": "Timespan in seconds to sleep between two sequental checks of the build queue state",
   "loc.messages.processingBuild": "Processing build %s",
   "loc.messages.processingRun": "Processing test run %s",
   "loc.messages.queuedBuilds": "Queued Builds %s",

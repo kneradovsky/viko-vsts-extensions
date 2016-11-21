@@ -21,6 +21,7 @@
     "ssl-root-cas": "^1.2",
     "vso-node-api": "^5.1",
     "vsts-task-lib": "^0.9",
+    "vsts-specflow": "^1",
     "xml2js": "^0.4.17",
     "node-trx" : "^0.7"
   },

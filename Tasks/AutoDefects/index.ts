@@ -49,11 +49,13 @@ async function createBug(apihelper:ApiHelper, build:bi.Build, result:ti.TestCase
         "Severity": "AutoTestFailure",
         "Priority": "High"
     }
+    //find runName from assignees that prefixes the current run name
+    let runName = Object.getOwnPropertyNames(assignees).find(e => result.testRun.name.startsWith(e)) || 'default';
     let WorkItemFields = {
         //"System.AreaId":Number.parseInt(result.area.id),
         "System.TeamProject":result.project.name,
         "System.State" : "New",
-        "System.AssignedTo": assignees[result.testRun.name] || assignees['default'],
+        "System.AssignedTo": assignees[runName],
         "System.Reason": "New",
         "System.Title": "Failed "+result.testCaseTitle,
         "System.Tags": "AutoTestFailure; AutoBug; "+build.buildNumber+"; "+result.testRun.name+";",
@@ -103,7 +105,7 @@ async function run() {
 }
 
 //tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-//tl.setVariable("Build.BuildId","10941");
+//tl.setVariable("Build.BuildId","11153");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
 .catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))

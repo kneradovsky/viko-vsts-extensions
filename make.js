@@ -472,9 +472,56 @@ target.bump = function() {
     });
 }
 
+function manifestContibution(id,name,friendlyName) {
+    return {
+        "id": id,
+        "type": "ms.vss-distributed-task.task",
+        "targets": [
+            "ms.vss-distributed-task.tasks"
+        ],
+        "properties": {
+            "name": name,
+            "friendlyName" : friendlyName
+        }
+    }
+}
+
+function makeCompositeExtension() {
+    var destFolder = buildPath;
+    //copy assets to the build folder
+    cp('-R',path.join(__dirname, 'assets'),destFolder);
+    //copy  extension .md
+    cp('-f',path.join(__dirname,'*.md'),destFolder);
+    cp('-f',path.join(destFolder,'ParallelBuilds.md'),path.join(destFolder,'overview.md'));
+    //generate manifest
+    var manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets','vss-extension.json')));
+    manifest.contributions=[];
+    manifest.files=[{path: "overview.md"}];
+    taskList.forEach(function(taskName) {
+        var taskPath = path.join(__dirname, 'Tasks', taskName);
+        var taskJsonPath = path.join(taskPath, 'task.json');
+        var taskPackageJsonPath = path.join(taskPath, 'package.json');
+        if (test('-f', taskJsonPath)) {
+            var taskDef = require(taskJsonPath);
+            var taskPkg = JSON.parse(fs.readFileSync(taskPackageJsonPath));
+            console.log('Creating manifest for task: '+taskDef.name);            
+            manifest.files.push({path: taskDef.name});
+            manifest.contributions.push(manifestContibution(taskPkg.name,taskDef.name,taskDef.friendlyName));
+        }
+    });
+    let manifestContent = JSON.stringify(manifest,null,4);
+    fs.writeFileSync(path.join(buildPath,'vss-extension.json'),manifestContent);
+    var curdir = __dirname;
+    cd(buildPath);
+    run('tfx extension create --manifest-globs vss-extension.json');
+    cd(curdir);
+}
+
 //create manifest file 
 target.makeExtensions = function() {
     ensureTool('tfx');
+    if(options.all) return makeCompositeExtension();
+    
     var extList = taskList;
     if(options.exts) {
         extList = options.exts.split(',');
