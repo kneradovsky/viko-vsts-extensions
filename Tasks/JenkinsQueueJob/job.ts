@@ -8,6 +8,8 @@ import shell = require('shelljs');
 // node js modules
 var request = require('request');
 
+let trxGen = require('node-trx');
+
 import jobsearch = require('./jobsearch');
 import JobSearch = jobsearch.JobSearch;
 import jobqueue = require('./jobqueue');
@@ -46,6 +48,10 @@ export class Job {
     jobConsole: string = "";
     jobConsoleOffset: number = 0;
     jobConsoleEnabled: boolean = false;
+
+    //capabilities flags
+    hasTestResults: boolean = false;
+    hasHtmlReport: boolean = false;
 
     working: boolean = true; // initially mark it as working
     workDelay: number = 0;
@@ -304,6 +310,10 @@ export class Job {
                     thisJob.debug("parsedBody for: " + resultUrl + ": " + JSON.stringify(parsedBody));
                     if (parsedBody.result) {
                         thisJob.setParsedExecutionResult(parsedBody);
+                        //check if job has Html report
+                        thisJob.checkIfHtmlReportExists();
+                        //publish test results if the job has any
+                        thisJob.publishTestResults();
                         if (thisJob.queue.taskOptions.teamBuildPluginAvailable) {
                             thisJob.stopWork(0, JobState.Downloading);
                         } else {
@@ -465,5 +475,71 @@ export class Job {
         }
         fullMessage += ')';
         return fullMessage;
+    }
+
+    checkIfHtmlReportExists() : void {
+        var fullUrl: string = Util.addUrlSegment(this.executableUrl, '/HTML_Report');
+        request.get({ url: fullUrl, strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
+            if (error) {
+                Util.handleConnectionResetError(error); // something went bad
+                this.stopWork(this.queue.taskOptions.pollIntervalMillis, this.state);
+                return;
+            } else if (response.statusCode == 200) {
+                this.hasHtmlReport=true;
+            } else this.hasHtmlReport=false;             
+        })
+    }
+
+    publishTestResults() : void {
+        var thisJob = this;
+        var fullUrl: string = Util.addUrlSegment(this.executableUrl, '/testReport/api/json');
+        request.get({ url: fullUrl, strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
+            if (error) {
+                Util.handleConnectionResetError(error); // something went bad
+                this.stopWork(this.queue.taskOptions.pollIntervalMillis, this.state);
+                return;
+            } else if (response.statusCode == 200) {
+                this.hasTestResults=true;
+                //publish results
+                var testResults = JSON.parse(body);
+                var repind:number=1;
+                for(var rep of testResults.childReports)
+                    request.get({ url: rep.child.url+'/testReport/api/json', strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
+                        if(!error) {
+                            var repBody = JSON.parse(body);
+                            thisJob.readAndPublishTestChildReport(repBody,repind++);
+                        }
+                    });
+            }
+        });
+    }
+    readAndPublishTestChildReport(repBody:any,repindex:number) : void {
+        let statusMap = {"PASSED": "Passes", "FAILED": "Failed","REGRESSION": "FAILED","FIXED": "Passed","SKIPPED": "NotExecuted"}
+        var curDate:Date = new Date(); 
+        var startDate = new Date(curDate.getTime()-Number.parseFloat(repBody.duration)*1000)
+        var run = new trxGen.TestRun({name: this.name+"_"+repindex,
+            times: {creation: startDate.toISOString(),
+                    start: startDate.toISOString(),
+                    queuing: startDate.toISOString(), 
+                    finish: curDate.toISOString()
+                }});
+        let testPublisher = new tl.TestPublisher("VSTest");
+        for(var suite of repBody.suites) {
+            for(var tres of suite) 
+                run.addResult({test: new trxGen.UnitTest({
+                        name: tres.name,
+                        methodName: tres.name,
+                        methodCodeBase: tres.name,
+                        methodClassName: tres.className,
+                    }),
+                    outcome: statusMap[tres.status] || 'Failed',
+                    duration: new Date(tres.duration*1000).toTimeString(),
+                    errorMessage: tres.errorDetails,
+                    errorStackTrace: tres.errorStackTrace
+                });
+            var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${this.name}_${repindex}.trx`);
+            fs.writeFileSync(filepath,run.toXml());
+            testPublisher.publish(filepath,"false","","",this.name,"false");
+        }
     }
 }

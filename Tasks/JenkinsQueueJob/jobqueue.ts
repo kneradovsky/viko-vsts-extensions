@@ -197,7 +197,12 @@ export class JobQueue {
             if (job.executableNumber == -1) {
                 jobContents += indent + job.name + ' ' + job.getResultString() + '<br>\n';
             } else {
-                jobContents += indent + '[' + job.name + ' #' + job.executableNumber + '](' + job.executableUrl + ') ' + job.getResultString() + '<br>\n';
+                jobContents += indent + '[' + job.name + ' #' + job.executableNumber + '](' + job.executableUrl + ') ' + job.getResultString() + '\n';
+                if(job.hasTestResults) 
+                    jobContents += ' [Test Results](' + job.executableUrl + '/testReport) ' + job.getResultString() + '\n';
+                if(job.hasHtmlReport) 
+                    jobContents += indent + '[Html Report](' + job.executableUrl + '/HTML_Report) ' + job.getResultString() + '\n';
+                jobContents+='<br>/n';
             }
 
             var childContents = "";

@@ -23,7 +23,8 @@
     "vsts-task-lib": "^0.9",
     "vsts-specflow": "^1",
     "xml2js": "^0.4.17",
-    "node-trx" : "^0.7"
+    "node-trx" : "^0.7",
+    "request": "^2.65.0"
   },
   "devDependencies": {
     "adm-zip": "0.4.7",

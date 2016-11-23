@@ -2,6 +2,7 @@
   "globalDependencies": {
     "html-entities": "registry:dt/html-entities#1.2.0+20160412134357",
     "node": "registry:dt/node#6.0.0+20160815222444",
-    "q": "registry:dt/q#0.0.0+20160613154756"
+    "q": "registry:dt/q#0.0.0+20160613154756",
+    "shelljs": "registry:dt/shelljs#0.0.0+20160526131156"    
   }
 }
