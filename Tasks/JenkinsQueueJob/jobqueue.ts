@@ -199,9 +199,8 @@ export class JobQueue {
             } else {
                 jobContents += indent + '[' + job.name + ' #' + job.executableNumber + '](' + job.executableUrl + ') ' + job.getResultString() + '\n';
                 if(job.hasTestResults) 
-                    jobContents += ' [Test Results](' + job.executableUrl + '/testReport) ' + job.getResultString() + '\n';
-                if(job.hasHtmlReport) 
-                    jobContents += indent + '[Html Report](' + job.executableUrl + '/HTML_Report) ' + job.getResultString() + '\n';
+                    jobContents += ' [Test Results](' + job.executableUrl + '/testReport) ' + job.getResultString() + '<br>\n';
+                thisQueue.taskOptions.additionalLinks.forEach(it => jobContents+=`[${it}](${job.executableUrl}/${it})<br>\n`)
                 jobContents+='<br>/n';
             }
 
