@@ -80,7 +80,7 @@ export class JobQueue {
         var running = [];
         for (var i in this.allJobs) {
             var job = this.allJobs[i];
-            if (job.state == JobState.Streaming || job.state==JobState.Downloading || job.state == JobState.Finishing) {
+            if (job.state == JobState.Streaming || job.state==JobState.Downloading || job.state == JobState.Finishing || job.state == JobState.TestResults) {
                 running.push(job);
             }
         }

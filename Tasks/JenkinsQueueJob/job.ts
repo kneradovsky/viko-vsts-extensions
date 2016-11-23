@@ -20,15 +20,16 @@ import unzip = require('./unzip');
 import * as Util from './util';
 
 export enum JobState {
-    New,       // 0
-    Locating,  // 1
-    Streaming, // 2
-    Finishing, // 3
-    Done,      // 4
-    Joined,    // 5
-    Queued,    // 6
-    Cut,       // 7
-    Downloading// 8
+    New,            // 0
+    Locating,       // 1
+    Streaming,      // 2
+    Finishing,      // 3
+    Done,           // 4
+    Joined,         // 5
+    Queued,         // 6
+    Cut,            // 7
+    Downloading,    // 8
+    TestResults     // 9
 }
 
 export class Job {
@@ -104,7 +105,9 @@ export class Job {
             } else if (oldState == JobState.Streaming) {
                 validStateChange = (newState == JobState.Finishing);
             } else if (oldState == JobState.Finishing) {
-                validStateChange = (newState == JobState.Downloading || newState == JobState.Done);
+                validStateChange = (newState == JobState.Downloading || newState == JobState.Done || newState == JobState.TestResults);
+            } else if(oldState == JobState.TestResults) {
+                validStateChange = (newState == JobState.Downloading || newState == JobState.Done );
             } else if (oldState == JobState.Downloading) {
                 validStateChange = (newState == JobState.Done);
             } else if (oldState == JobState.Done || oldState == JobState.Joined || oldState == JobState.Cut) {
@@ -130,7 +133,10 @@ export class Job {
                     this.downloadResults();
                 } else if (this.state == JobState.Finishing) {
                     this.finish();
-                } else {
+                } else if(this.state == JobState.TestResults) {
+                    this.publishTestResults();
+                } 
+                else {
                     // usually do not get here, but this can happen if another callback caused this job to be joined
                     this.stopWork(this.queue.taskOptions.pollIntervalMillis, null);
                 }
@@ -154,6 +160,7 @@ export class Job {
             this.state == JobState.Locating ||
             this.state == JobState.Streaming ||
             this.state == JobState.Downloading ||
+            this.state == JobState.TestResults ||
             this.state == JobState.Finishing
     }
 
@@ -310,15 +317,7 @@ export class Job {
                     thisJob.debug("parsedBody for: " + resultUrl + ": " + JSON.stringify(parsedBody));
                     if (parsedBody.result) {
                         thisJob.setParsedExecutionResult(parsedBody);
-                        //check if job has Html report
-                        thisJob.checkIfHtmlReportExists();
-                        //publish test results if the job has any
-                        thisJob.publishTestResults();
-                        if (thisJob.queue.taskOptions.teamBuildPluginAvailable) {
-                            thisJob.stopWork(0, JobState.Downloading);
-                        } else {
-                            thisJob.stopWork(0, JobState.Done);
-                        }
+                        thisJob.stopWork(0,JobState.TestResults);
                     } else {
                         // result not updated yet -- keep trying
                         thisJob.stopWork(thisJob.queue.taskOptions.pollIntervalMillis, thisJob.state);
@@ -477,18 +476,7 @@ export class Job {
         return fullMessage;
     }
 
-    checkIfHtmlReportExists() : void {
-        var fullUrl: string = Util.addUrlSegment(this.executableUrl, '/HTML_Report');
-        request.get({ url: fullUrl, strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
-            if (error) {
-                Util.handleConnectionResetError(error); // something went bad
-                this.stopWork(this.queue.taskOptions.pollIntervalMillis, this.state);
-                return;
-            } else if (response.statusCode == 200) {
-                this.hasHtmlReport=true;
-            } else this.hasHtmlReport=false;             
-        })
-    }
+
 
     publishTestResults() : void {
         var thisJob = this;
@@ -503,16 +491,32 @@ export class Job {
                 //publish results
                 var testResults = JSON.parse(body);
                 var repind:number=1;
-                for(var rep of testResults.childReports)
+                var queuelen=0;
+                for(var rep of testResults.childReports) {
+                    queuelen++;
                     request.get({ url: rep.child.url+'/testReport/api/json', strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
                         if(!error) {
                             var repBody = JSON.parse(body);
                             thisJob.readAndPublishTestChildReport(repBody,repind++);
-                        }
-                    });
+                            queuelen--;
+                        } else queuelen--;
+                    }).auth(thisJob.queue.taskOptions.username, thisJob.queue.taskOptions.password, true);
+                }
+                //wait until allresults are fetched and then switch to the next state
+                let waitTestResultsComplete = () => {
+                    if(queuelen==0) {
+                        if (thisJob.queue.taskOptions.teamBuildPluginAvailable) thisJob.stopWork(0, JobState.Downloading);
+                        else thisJob.stopWork(0, JobState.Done);
+                        return;
+                    }
+                    tl.debug('wait for test results processing complete...');
+                    setInterval(waitTestResultsComplete,thisJob.queue.taskOptions.pollIntervalMillis);
+                }
+                waitTestResultsComplete();
             }
-        });
+        }).auth(thisJob.queue.taskOptions.username, thisJob.queue.taskOptions.password, true);
     }
+
     readAndPublishTestChildReport(repBody:any,repindex:number) : void {
         let statusMap = {"PASSED": "Passes", "FAILED": "Failed","REGRESSION": "FAILED","FIXED": "Passed","SKIPPED": "NotExecuted"}
         var curDate:Date = new Date(); 
@@ -524,22 +528,30 @@ export class Job {
                     finish: curDate.toISOString()
                 }});
         let testPublisher = new tl.TestPublisher("VSTest");
-        for(var suite of repBody.suites) {
-            for(var tres of suite) 
-                run.addResult({test: new trxGen.UnitTest({
-                        name: tres.name,
-                        methodName: tres.name,
-                        methodCodeBase: tres.name,
-                        methodClassName: tres.className,
-                    }),
-                    outcome: statusMap[tres.status] || 'Failed',
-                    duration: new Date(tres.duration*1000).toTimeString(),
-                    errorMessage: tres.errorDetails,
-                    errorStackTrace: tres.errorStackTrace
-                });
-            var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${this.name}_${repindex}.trx`);
-            fs.writeFileSync(filepath,run.toXml());
-            testPublisher.publish(filepath,"false","","",this.name,"false");
+        try {
+            for(var suite of repBody.suites) {
+                for(var tres of suite.cases) {
+                    run.addResult({test: new trxGen.UnitTest({
+                            name: tres.name,
+                            methodName: tres.name,
+                            methodCodeBase: tres.name,
+                            methodClassName: tres.className
+                        }),
+                        computerName: "undefined",
+                        outcome: statusMap[tres.status] || 'Failed',
+                        duration: new Date(tres.duration*1000).toTimeString(),
+                        errorMessage: tres.errorDetails,
+                        errorStackTrace: tres.errorStackTrace,
+                    });
+                }
+                var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${this.name}_${repindex}.trx`);
+                fs.writeFileSync(filepath,run.toXml());
+                testPublisher.publish(filepath,"false","","",this.name,"false");
+            } 
+            tl.debug(`results for ${this.name}_${repindex} were published`);
+        } catch(err) {
+            tl.debug(`error occured while publishing results:` + err);
         }
     }
+
 }
