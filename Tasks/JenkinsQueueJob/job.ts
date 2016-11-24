@@ -50,14 +50,14 @@ export class Job {
     jobConsoleOffset: number = 0;
     jobConsoleEnabled: boolean = false;
 
-    //capabilities flags
-    hasTestResults: boolean = false;
-    hasHtmlReport: boolean = false;
-
     working: boolean = true; // initially mark it as working
     workDelay: number = 0;
 
     parsedExecutionResult: any; // set during state Finishing
+
+    //testResults files
+    testResults : string[] = [];
+
 
     constructor(jobQueue: JobQueue, parent: Job, taskUrl: string, executableUrl: string, executableNumber: number, name: string) {
         this.parent = parent;
@@ -487,7 +487,6 @@ export class Job {
                 this.stopWork(this.queue.taskOptions.pollIntervalMillis, this.state);
                 return;
             } else if (response.statusCode == 200) {
-                this.hasTestResults=true;
                 //publish results
                 var testResults = JSON.parse(body);
                 var repind:number=1;
@@ -509,9 +508,9 @@ export class Job {
                         else thisJob.stopWork(0, JobState.Done);
                         return;
                     }
-                    tl.debug('wait for test results processing complete...');
-                    setInterval(waitTestResultsComplete,thisJob.queue.taskOptions.pollIntervalMillis);
-                }
+                    tl.debug('wait for test results processing complete..., queuelen='+queuelen);
+                    setTimeout(waitTestResultsComplete,thisJob.queue.taskOptions.pollIntervalMillis);
+                };
                 waitTestResultsComplete();
             }
         }).auth(thisJob.queue.taskOptions.username, thisJob.queue.taskOptions.password, true);
@@ -527,7 +526,6 @@ export class Job {
                     queuing: startDate.toISOString(), 
                     finish: curDate.toISOString()
                 }});
-        let testPublisher = new tl.TestPublisher("VSTest");
         try {
             for(var suite of repBody.suites) {
                 for(var tres of suite.cases) {
@@ -546,7 +544,7 @@ export class Job {
                 }
                 var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${this.name}_${repindex}.trx`);
                 fs.writeFileSync(filepath,run.toXml());
-                testPublisher.publish(filepath,"false","","",this.name,"false");
+                this.testResults.push(filepath);
             } 
             tl.debug(`results for ${this.name}_${repindex} were published`);
         } catch(err) {

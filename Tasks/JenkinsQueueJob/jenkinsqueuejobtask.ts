@@ -51,7 +51,7 @@ export class TaskOptions {
 
     constructor() {
 
-        if(process.env.node_env!='development') {
+
         this.serverEndpoint = tl.getInput('serverEndpoint', true);
         this.serverEndpointUrl = tl.getEndpointUrl(this.serverEndpoint, false);
         tl.debug('serverEndpointUrl=' + this.serverEndpointUrl);
@@ -60,7 +60,6 @@ export class TaskOptions {
         this.password = this.serverEndpointAuth['parameters']['password'];
 
         this.jobName = tl.getInput('jobName', true);
-        } 
 
         this.captureConsole = tl.getBoolInput('captureConsole', true);
         // capturePipeline is only possible if captureConsole mode is enabled

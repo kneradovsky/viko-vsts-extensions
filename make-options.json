@@ -1,6 +1,5 @@
 {
     "tasks": [
-    "JenkinsDownloadArtifacts",
     "JenkinsQueueJob"
     ],
     "taskResources": [

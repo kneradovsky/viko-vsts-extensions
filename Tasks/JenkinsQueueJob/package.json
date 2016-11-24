@@ -2,7 +2,8 @@
   "name": "vsts-tasks-jenkinsqueuejob",
   "dependencies": {
     "request": "^2.65.0",
-    "vsts-task-lib": "0.9.20"
+    "vsts-task-lib": "0.9.20",
+    "node-trx" : "^0.7"
   },
   "description": "VSTS Jenkins Queue Job Task",
   "repository": {
