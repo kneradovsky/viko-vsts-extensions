@@ -13,16 +13,20 @@ export class ApiHelper {
     constructor() {
         //inject certificates
         require('ssl-root-cas/latest').inject().addFile(__dirname + '/ssl/GeneralRootCA.cer');
-        var authtype;
+        let authtype;
+        var uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl');
         console.log(tl.getInput("authtype"));
         switch(tl.getInput("authtype")) {
             case 'PAT' : authtype = vm.getPersonalAccessTokenHandler(tl.getInput("PAT"));break;
             case 'NTLM' : authtype = vm.getNtlmHandler(tl.getInput('Username'),tl.getInput('Password'));break;
             case 'Basic' :  authtype = vm.getBasicHandler(tl.getInput('Username'),tl.getInput('Password'));break;
-            default: console.log("Using System.OAuth");authtype = vm.getBearerHandler(tl.getVariable("System.AccessToken")); 
-            
+            default:                 
+                console.log("using System VSS Connection");
+                uri = tl.getEndpointUrl("SystemVssConnection",false);
+                let auth = tl.getEndpointAuthorization("SystemVssConnection", false);
+                authtype = vm.getBearerHandler(auth.parameters["AccessToken"]);
         }
-        let uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl'); 
+         
         this.webApi =new vm.WebApi(uri,authtype); 
     }
     getApi() : vm.WebApi {
