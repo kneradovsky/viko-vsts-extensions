@@ -1,6 +1,6 @@
 {
   "name": "vsts-specflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SpecFlow helpers for vsts tasks",
   "main": "index.js",
   "scripts": {

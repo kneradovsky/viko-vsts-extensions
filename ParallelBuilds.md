@@ -3,9 +3,7 @@
 Parallel Builds extension provides tasks to start builds in parallel, wait for them to finish and consume their test results. It also contains AutoDefects task to automatically create defects from the failed test run results.
 
 ## Parallel Builds tasks
-The extenstion provides two task to manage parallel/chain builds. Tasks use the OAuth authentication - you need to set _Allow Scripts to acccess OAuth token_ flag on the build options page. 
-
-![screenshot](https://github.com/kneradovsky/viko-vsts-extensions/blob/master/assets/oauthToken.png?raw=true)
+The extenstion provides two task to manage parallel/chain builds. Tasks use "internal" connection, so you dont't need to specify any auth parameters 
 
 
 1. Chain Builds Starter
