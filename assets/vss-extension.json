@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "viko-build-tasks",
     "name": "Parallel Builds",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "publisher": "kneradovsky",
     "public" : true,
     "targets": [

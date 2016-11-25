@@ -96,7 +96,7 @@ async function run() : Promise<number>{
         var dataStr="";
         for(let bid of buildList) {
             let build = await bapi.getBuild(bid,projId);
-            dataStr+=`[Build ${build.definition.name}](${build._links.web.href})\n`;
+            dataStr+=`[Build ${build.definition.name}](${build._links.web.href})<br>\n`;
         }
         fs.writeFileSync(filepath,dataStr);
         tl._writeLine("##vso[task.addattachment type=Distributedtask.Core.Summary;name=Original Builds;]"+filepath);
