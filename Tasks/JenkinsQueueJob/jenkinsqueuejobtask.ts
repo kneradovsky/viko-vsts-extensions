@@ -72,7 +72,7 @@ export class TaskOptions {
         this.jobParameters = this.parameterizedJob ? tl.getDelimitedInput('jobParameters', '\n', false) : [];
 
         //additional links to be published
-        this.additionalLinks = tl.getDelimitedInput('addLinks','\n',true);
+        this.additionalLinks = tl.getDelimitedInput('addLinks','\n',true) || [];
 
         this.jobQueueUrl = util.addUrlSegment(this.serverEndpointUrl, util.convertJobName(this.jobName)) + ((this.parameterizedJob) ? '/buildWithParameters?delay=0sec' : '/build?delay=0sec');
         tl.debug('jobQueueUrl=' + this.jobQueueUrl);
