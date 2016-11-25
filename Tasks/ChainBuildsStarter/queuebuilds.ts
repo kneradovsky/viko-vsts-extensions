@@ -27,8 +27,10 @@ async function run() {
     let buildList = tl.getInput("buildList").split(",");
     try {
         let bapi = api.getBuildApi();
-        //map buildname to build def numbers
-        let defNumbers = (await bapi.getDefinitions(projId)).filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1).map(bdr => bdr.id);
+        //map buildname to build def numbers and filter out drafts
+        let defNumbers = (await bapi.getDefinitions(projId))
+                         .filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1) //find build definitions that matches names from buildList
+                         .filter(bdr => bdr.quality==bi.DefinitionQuality.Definition).map(bdr => bdr.id); //filter out drafts
         let buildNumbers = [];
         for(let bid of defNumbers) {
             let bDef =  await bapi.getDefinition(bid,projId);
