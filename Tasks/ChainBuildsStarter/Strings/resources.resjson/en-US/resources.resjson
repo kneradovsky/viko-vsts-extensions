@@ -9,5 +9,7 @@
   "loc.messages.taskSucceeded": "All done",
   "loc.messages.taskFailed": "Task Failed",
   "loc.messages.Builds": "Queued builds %s",
-  "loc.messages.queueBuild": "started build %s"
+  "loc.messages.queueBuild": "started build %s",
+  "loc.messages.buildQueueFailed": "Build %s queueing failed",
+  "loc.messages.previousBuilds": "Previously queued builds: %s"
 }

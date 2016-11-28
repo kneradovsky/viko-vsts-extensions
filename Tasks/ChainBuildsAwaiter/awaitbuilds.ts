@@ -25,6 +25,7 @@ let api = apihelper.getApi();
 var projId = null;
 let testPublisher  = new tl.TestPublisher("VSTest");
 var passedTests=0,totalTests=0;
+var hasFailedBuilds=false;
 
 async function processTestRun(testRun:ti.TestRun) {
     var testResults = await api.getTestApi().getTestResults(projId,testRun.id);
@@ -67,6 +68,7 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
         }
         //build completed store results
         console.log(tl.loc("processingBuild",build.definition.name));
+        if(build.result==bi.BuildResult.Failed || build.result==bi.BuildResult.Canceled) hasFailedBuilds=true;
         var testRuns = await api.getTestApi().getTestRuns(projId,`vstfs:///Build/Build/${buildId}`);
         for(var testRun of testRuns) {
             console.log(tl.loc("processingRun",testRun.name));
@@ -109,7 +111,7 @@ async function run() : Promise<number>{
             }
         }
         //1 - passed, 2 - passed with issues, 3 - failed
-        let result = passedTests==totalTests ? 1 : passedTests==0 ? 3 : 2;
+        let result = hasFailedBuilds ? 3 : passedTests==totalTests ? 1 : passedTests==0 ? 3 : 2;
         let res = Q.defer<number>();
         res.resolve(result);
         return res.promise;
@@ -132,6 +134,6 @@ run()
     case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;
     case 2: tl._writeLine("##vso[task.complete result=SucceededWithIssues;]");break;
     case 3: 
-    default: tl.setResult(tl.TaskResult.Failed,tl.loc("taskSucceeded"));
+    default: tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed"));
 }})
 .catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed")))

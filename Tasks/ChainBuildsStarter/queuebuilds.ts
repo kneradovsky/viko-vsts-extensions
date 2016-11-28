@@ -25,21 +25,30 @@ async function run() {
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     let projId = tl.getVariable("System.TeamProjectId");
     let buildList = tl.getInput("buildList").split(",");
+    let buildNumbersStr = tl.getVariable("queuedBuilds") || "";
+    tl._writeLine(tl.loc("previousBuilds",buildNumbersStr));
+    var buildNumbers=[];
+    if(buildNumbersStr!="")
+        buildNumbers = buildNumbersStr.split(",").map(s => Number.parseInt(s));
     try {
         let bapi = api.getBuildApi();
         //map buildname to build def numbers and filter out drafts
         let defNumbers = (await bapi.getDefinitions(projId))
                          .filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1) //find build definitions that matches names from buildList
                          .filter(bdr => bdr.quality==bi.DefinitionQuality.Definition).map(bdr => bdr.id); //filter out drafts
-        let buildNumbers = [];
+        
         for(let bid of defNumbers) {
             let bDef =  await bapi.getDefinition(bid,projId);
             var build:bi.Build = Object.create(null);
             build.definition=Object.create(null);
             build.definition.id=bDef.id;
-            build = await bapi.queueBuild(build,projId);
-            console.log(tl.loc("queueBuild",bDef.name));
-            buildNumbers.push(build.id);
+            try {
+                build = await bapi.queueBuild(build,projId);
+                console.log(tl.loc("queueBuild",bDef.name));
+                buildNumbers.push(build.id);
+            } catch(err) {
+                tl._writeError(tl.loc("buildQueueFailed",bDef.name));
+            }
         }
         let builds = buildNumbers.join(",");
         console.log(tl.loc("Builds",builds));
@@ -51,7 +60,7 @@ async function run() {
     }
 }
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 //tl.setVariable("Build.BuildId","10511");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded")))
