@@ -12,7 +12,7 @@ export class ApiHelper {
     private webApi : vm.WebApi;
     constructor() {
         //inject certificates
-        require('ssl-root-cas/latest').inject().addFile(__dirname + '/ssl/GeneralRootCA.cer');
+        require('ssl-root-cas').inject().addFile(__dirname + '/ssl/GeneralRootCA.cer');
         let authtype;
         var uri = tl.getVariable("System.TeamFoundationCollectionUri") || tl.getInput('apiurl');
         console.log(tl.getInput("authtype"));
@@ -22,8 +22,8 @@ export class ApiHelper {
             case 'Basic' :  authtype = vm.getBasicHandler(tl.getInput('Username'),tl.getInput('Password'));break;
             default:                 
                 console.log("using System VSS Connection");
-                uri = tl.getEndpointUrl("SystemVssConnection",false);
-                let auth = tl.getEndpointAuthorization("SystemVssConnection", false);
+                uri = tl.getEndpointUrl("SystemVssConnection",true) || tl.getEndpointUrl("SYSTEMVSSCONNECTION",false);
+                let auth = tl.getEndpointAuthorization("SystemVssConnection", true) || tl.getEndpointAuthorization("SYSTEMVSSCONNECTION", false);;
                 authtype = vm.getBearerHandler(auth.parameters["AccessToken"]);
         }
          
