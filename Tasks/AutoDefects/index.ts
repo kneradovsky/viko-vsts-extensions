@@ -51,16 +51,22 @@ async function createBug(apihelper:ApiHelper, build:bi.Build, result:ti.TestCase
     }
     //find runName from assignees that prefixes the current run name
     let runName = Object.getOwnPropertyNames(assignees).find(e => result.testRun.name.startsWith(e)) || 'default';
-    let WorkItemFields = {
+    // check if assignees entry is Object
+    if( typeof assignees[runName] === 'string') {
+        let assignee = assignees[runName];
+        assignees[runName] = {"user" : assignee, "mandatoryFields" : {}};
+    } 
+    var WorkItemFields = {
         //"System.AreaId":Number.parseInt(result.area.id),
         "System.TeamProject":result.project.name,
         "System.State" : "New",
-        "System.AssignedTo": assignees[runName],
+        "System.AssignedTo": assignees[runName].user,
         "System.Reason": "New",
         "System.Title": "Failed "+result.testCaseTitle,
         "System.Tags": "AutoTestFailure; AutoBug; "+build.buildNumber+"; "+result.testRun.name+";",
-        "Microsoft.VSTS.TCM.ReproSteps" : JSON.stringify(BugInfo)+"\r\n<br/>" + result.errorMessage + " " + result.stackTrace
+        "Microsoft.VSTS.TCM.ReproSteps" : JSON.stringify(BugInfo)+"\r\n<br/>" + result.errorMessage + " " + result.stackTrace,
     }
+    WorkItemFields = Object.assign(WorkItemFields,assignees[runName].mandatoryFields);
     let WorkItemRelations = [
         {"rel": "ArtifactLink","url":build.uri,"attributes":{"name":"Build"}}
     ];
@@ -104,8 +110,8 @@ async function run() {
     }
 }
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-//tl.setVariable("Build.BuildId","11153");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("Build.BuildId","14053");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,"All Done"))
 .catch(r => tl.setResult(tl.TaskResult.Failed,"Task failed"))
