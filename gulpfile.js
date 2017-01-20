@@ -21,6 +21,8 @@ function make (target, cb) {
     return true;
 }
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 gulp.task('build', function (cb) {
     make('build', cb);
 });

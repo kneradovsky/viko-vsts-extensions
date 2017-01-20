@@ -517,7 +517,7 @@ export class Job {
     }
 
     readAndPublishTestChildReport(repBody:any,repindex:number) : void {
-        let statusMap = {"PASSED": "Passes", "FAILED": "Failed","REGRESSION": "FAILED","FIXED": "Passed","SKIPPED": "NotExecuted"}
+        let statusMap = {"PASSED": "Passed", "FAILED": "Failed","REGRESSION": "FAILED","FIXED": "Passed","SKIPPED": "NotExecuted"}
         var curDate:Date = new Date(); 
         var startDate = new Date(curDate.getTime()-Number.parseFloat(repBody.duration)*1000)
         var run = new trxGen.TestRun({name: this.name+"_"+repindex,
