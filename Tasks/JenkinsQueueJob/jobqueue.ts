@@ -195,8 +195,10 @@ export class JobQueue {
             job = findWorkingJob(job);
             
             //publish test Results
-            let tp = new tl.TestPublisher("VSTest");
-            tp.publish(job.testResults,true,"","",job.name,true);
+            if(job.testResults.length>0) {
+                let tp = new tl.TestPublisher("VSTest");
+                tp.publish(job.testResults,true,"","",job.name,true);
+            }
 
             if (job.executableNumber == -1) {
                 jobContents += indent + job.name + ' ' + job.getResultString() + '<br>\n';

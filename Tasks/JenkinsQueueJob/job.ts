@@ -96,7 +96,7 @@ export class Job {
         var oldState: JobState = this.state;
         this.state = newState;
         if (oldState != newState) {
-            this.debug('state changed from: ' + oldState);
+            this.debug('state changed from: ' + oldState + 'to:' + newState);
             var validStateChange: boolean = false;
             if (oldState == JobState.New) {
                 validStateChange = (newState == JobState.Locating || newState == JobState.Streaming || newState == JobState.Joined || newState == JobState.Cut);
@@ -481,18 +481,22 @@ export class Job {
     publishTestResults() : void {
         var thisJob = this;
         var fullUrl: string = Util.addUrlSegment(this.executableUrl, '/testReport/api/json');
+        tl.debug("Going to publish test results");
         request.get({ url: fullUrl, strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
             if (error) {
+                tl.debug("Publishing test results error");
                 Util.handleConnectionResetError(error); // something went bad
                 this.stopWork(this.queue.taskOptions.pollIntervalMillis, this.state);
                 return;
             } else if (response.statusCode == 200) {
                 //publish results
+                tl.debug("Publishing test results");
                 var testResults = JSON.parse(body);
                 var repind:number=1;
                 var queuelen=0;
                 for(var rep of testResults.childReports) {
                     queuelen++;
+                    tl.debug("Publishing test results for "+ rep);
                     request.get({ url: rep.child.url+'/testReport/api/json', strictSSL: this.queue.taskOptions.strictSSL },(error, response,body) => {
                         if(!error) {
                             var repBody = JSON.parse(body);
@@ -512,11 +516,16 @@ export class Job {
                     setTimeout(waitTestResultsComplete,thisJob.queue.taskOptions.pollIntervalMillis);
                 };
                 waitTestResultsComplete();
+            } else {
+                tl.debug("Response code: "+response.statusCode);
+                if (thisJob.queue.taskOptions.teamBuildPluginAvailable) thisJob.stopWork(0, JobState.Downloading);
+                else thisJob.stopWork(0, JobState.Done);
             }
         }).auth(thisJob.queue.taskOptions.username, thisJob.queue.taskOptions.password, true);
     }
 
     readAndPublishTestChildReport(repBody:any,repindex:number) : void {
+        tl.debug("Publishing results for report: "+repBody);
         let statusMap = {"PASSED": "Passed", "FAILED": "Failed","REGRESSION": "FAILED","FIXED": "Passed","SKIPPED": "NotExecuted"}
         var curDate:Date = new Date(); 
         var startDate = new Date(curDate.getTime()-Number.parseFloat(repBody.duration)*1000)

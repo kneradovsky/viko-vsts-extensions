@@ -1,6 +1,7 @@
 {
     "tasks": [
-    "JenkinsQueueJob"
+    "JenkinsQueueJob",
+    "JenkinsDownloadArtifacts"
     ],
     "taskResources": [
         "*.ps1",
