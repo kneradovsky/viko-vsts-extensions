@@ -1,0 +1,28 @@
+{
+  "name": "vsts-openbank-chainbuilds-awaiter",
+  "version": "1.0.1",
+  "description": "",
+  "main": "queuebuilds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kneradovsky/SpecFlowTFSExtension.git"
+  },
+  "author": "kneradovsky",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/kneradovsky/SpecFlowTFSExtension/issues"
+  },
+  "homepage": "https://github.com/kneradovsky/SpecFlowTFSExtension#readme",
+  "dependencies": {
+    "html-entities": "^1.2.0",
+    "ssl-root-cas": "^1.2",
+    "vso-node-api": "^5.1",
+    "vsts-task-lib": "^0.9",
+    "xml2js": "^0.4.17",
+    "node-trx" : "^0.7",
+    "vsts-specflow" : "^1"
+  }
+}
