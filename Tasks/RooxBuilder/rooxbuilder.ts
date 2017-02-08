@@ -98,6 +98,7 @@ async function startBuild(jobname: string,oper: string, benv: string,params:any)
         "jobname": jobname,
         "operation" : oper,
         "buildenv" : benv,
+        "joblinks" : "htmlReport",
         "jobparams" : jobparams
     };
     let strparams = JSON.stringify(bparams);
@@ -177,6 +178,9 @@ async function run() : Promise<number>{
         if(!tl.exist(buildMapFile)) { 
             let buildSet = createBuildSet("b650f3c5c5048fb85d366bdff5e2b24b84e30333");
             BuildMap = createBuildMap(buildSet);
+            let mapContents = JSON.stringify(BuildMap);
+            let newBuildMapFile = tl.getVariable("Build.Repository.LocalPath")+"/"+tl.getInput("buildMap");
+            fs.writeFileSync(newBuildMapFile,mapContents);
             operation = "publish";
         } else {
             let mapcontents = fs.readFileSync(buildMapFile,"UTF-8");
