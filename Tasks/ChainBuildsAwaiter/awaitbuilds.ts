@@ -26,9 +26,10 @@ var projId = null;
 let testPublisher  = new tl.TestPublisher("VSTest");
 var passedTests=0,totalTests=0;
 var hasFailedBuilds=false;
+let jobsResult:ti.TestRun = Object.create(null);
+let buildResults:ti.TestCaseResult[] = [];
 
-async function processTestRun(testRun:ti.TestRun) {
-    var testResults = await api.getTestApi().getTestResults(projId,testRun.id);
+function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
     var run = new trx.TestRun({name: testRun.name,
         times: {creation: testRun.createdDate.toISOString(),
                 start: testRun.startedDate.toISOString(),
@@ -57,6 +58,31 @@ async function processTestRun(testRun:ti.TestRun) {
     testPublisher.publish(filepath,"false",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name,"false");
 }
 
+async function processTestRun(testRun:ti.TestRun) {
+    var testResults = await api.getTestApi().getTestResults(projId,testRun.id);
+    createTestReport(testRun,testResults);
+}
+
+function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
+    let result : ti.TestCaseResult = Object.create(null);
+    var params = {jobname: "",operation: "",buildenv:""};
+    try {
+        params = JSON.parse(build.parameters);
+    } catch(e) {} 
+    result.testCase = Object.create(null);
+    result.testCase.name=build.definition.name + "_"+ [params.jobname,params.operation,params.buildenv].join("_");
+    result.automatedTestName=build.definition.name;
+    result.automatedTestStorage = build.project.name;
+    result.computerName = build.queue.name;
+    result.comment = build.parameters; 
+    result.outcome = bi.BuildResult[build.result];
+    result.startedDate = build.startTime;
+    result.completedDate = new Date();
+    result.durationInMs = result.completedDate.getTime()-result.startedDate.getTime(); 
+    result.errorMessage = result.stackTrace = "";
+    return result;
+}
+
 async function processBuilds(buildList: number[]) : Promise<number[]>{
     let bapi = api.getBuildApi();
     var remainBuilds:number[] = []
@@ -66,6 +92,7 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
             remainBuilds.push(buildId);
             continue;
         }
+        buildResults.push(createBuildRunResult(build));
         //build completed store results
         console.log(tl.loc("processingBuild",build.definition.name));
         if(build.result==bi.BuildResult.Failed || build.result==bi.BuildResult.Canceled) hasFailedBuilds=true;
@@ -91,6 +118,10 @@ async function run() : Promise<number>{
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
     console.log(tl.loc("queuedBuilds",strBuildList));
     try {
+        jobsResult.createdDate = new Date();
+        jobsResult.startedDate = jobsResult.createdDate;
+        jobsResult.name = "Builds";
+        jobsResult.buildConfiguration = Object.create(null);
         var buildList = strBuildList.split(",").map(e => Number.parseInt(e));
         let bapi = api.getBuildApi();
         //generate .md file for the summary page
@@ -110,6 +141,8 @@ async function run() : Promise<number>{
                 await new Promise(resolve => setTimeout(resolve,sleepBetweenIters*1000));
             }
         }
+        jobsResult.completedDate = new Date();
+        createTestReport(jobsResult,buildResults);
         //1 - passed, 2 - passed with issues, 3 - failed
         let result = hasFailedBuilds ? 3 : passedTests==totalTests ? 1 : passedTests==0 ? 3 : 2;
         let res = Q.defer<number>();
@@ -125,9 +158,9 @@ async function run() : Promise<number>{
 }
 
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-//tl.setVariable("queuedBuilds","10716");
-//tl.setVariable("Agent.BuildDirectory","/dev/temp/");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("queuedBuilds","14755");
+tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => {switch(r) {
