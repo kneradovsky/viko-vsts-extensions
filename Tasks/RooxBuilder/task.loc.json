@@ -1,0 +1,70 @@
+{
+  "id": "61d0f24c-211f-4f40-b7c3-c73361eeafc6",
+  "name": "RooxBuilder",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
+  "category": "Build",
+  "author": "kneradovsky",
+  "version": {
+    "Major": 1,
+    "Minor": 1,
+    "Patch": 8
+  },
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
+  "groups": [],
+  "inputs": [
+    {
+      "name": "artefactsFolder",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.artefactsFolder",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.artefactsFolder"
+    },
+    {
+      "name": "buildMap",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.buildMap",
+      "defaultValue": "builds.json",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.buildMap"
+    },
+    {
+      "name": "Environment",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.Environment",
+      "defaultValue": "roox",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.Environment",
+      "options": {
+        "roox": "Development",
+        "whilewalkers": "Test",
+        "nightwatch": "Production"
+      }
+    },
+    {
+      "name": "ProxyJob",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.ProxyJob",
+      "defaultValue": "builds.json",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.ProxyJob"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "rooxbuilder.js"
+    }
+  },
+  "messages": {
+    "processingBuild": "ms-resource:loc.messages.processingBuild",
+    "processingRun": "ms-resource:loc.messages.processingRun",
+    "queuedBuilds": "ms-resource:loc.messages.queuedBuilds",
+    "buildsToWait": "ms-resource:loc.messages.buildsToWait",
+    "sleeping": "ms-resource:loc.messages.sleeping",
+    "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
+    "taskFailed": "ms-resource:loc.messages.taskFailed",
+    "testRunOutcome": "ms-resource:loc.messages.testRunOutcome"
+  }
+}

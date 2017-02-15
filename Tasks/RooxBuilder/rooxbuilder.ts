@@ -179,6 +179,7 @@ async function run() : Promise<number>{
             let buildSet = createBuildSet("b650f3c5c5048fb85d366bdff5e2b24b84e30333");
             BuildMap = createBuildMap(buildSet);
             let mapContents = JSON.stringify(BuildMap);
+            tl.debug(mapContents);
             let newBuildMapFile = tl.getVariable("Build.Repository.LocalPath")+"/"+tl.getInput("buildMap");
             fs.writeFileSync(newBuildMapFile,mapContents);
             operation = "publish";
@@ -206,8 +207,8 @@ async function run() : Promise<number>{
 
 }
 
-tl.setVariable("Build.Repository.LocalPath","/dev/tmp/roox");
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("Build.Repository.LocalPath","/dev/tmp/roox");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 run()
 .then(r => {switch(r) {
     case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;

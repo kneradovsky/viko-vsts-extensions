@@ -75,7 +75,7 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     result.automatedTestStorage = build.project.name;
     result.computerName = build.queue.name;
     result.comment = build.parameters; 
-    result.outcome = bi.BuildResult[build.result];
+    result.outcome = bi.BuildResult[build.result].includes("Succeeded") ? "Passed" : "Failed";
     result.startedDate = build.startTime;
     result.completedDate = new Date();
     result.durationInMs = result.completedDate.getTime()-result.startedDate.getTime(); 

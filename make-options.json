@@ -1,8 +1,7 @@
 {
     "tasks": [
     "ChainBuildsAwaiter",
-    "ChainBuildsStarter",
-    "AutoDefects"
+    "RooxBuilder"
     ],
     "taskResources": [
         "*.ps1",
