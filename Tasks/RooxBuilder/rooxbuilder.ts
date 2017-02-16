@@ -39,7 +39,7 @@ function readPosition(source: String[],pos: number) {
 
 
 function createBuildSet(commit) : Set<String> {
-    let git = tl.tool("git");
+    let git = tl.tool(tl.getVariable("GIT_PATH") || "git");
     git.arg(("diff-tree --no-commit-id --name-only -r "+commit).split(" "));
     let curdir = tl.getVariable("Build.Repository.LocalPath");
     let res = git.execSync({cwd: curdir,env :{},silent:false,failOnStdErr:false,ignoreReturnCode:false,outStream:undefined,errStream:undefined});
@@ -173,19 +173,24 @@ async function run() : Promise<number>{
         proxyBuildDef =  await bapi.getDefinition(defNumbers[0],projId);
 
         let buildMapFile = tl.getInput("artefactsFolder",true)+"/"+tl.getInput("buildMap");
-        var BuildMap;
+        var BuildMap:Map<String,String[]>;
         var operation;
         if(!tl.exist(buildMapFile)) { 
             let buildSet = createBuildSet("b650f3c5c5048fb85d366bdff5e2b24b84e30333");
             BuildMap = createBuildMap(buildSet);
-            let mapContents = JSON.stringify(BuildMap);
+            let serMap = {};
+            BuildMap.forEach((v,k,m)=>serMap[k.toString()]=v)
+            let mapContents = JSON.stringify(serMap);
             tl.debug(mapContents);
             let newBuildMapFile = tl.getVariable("Build.Repository.LocalPath")+"/"+tl.getInput("buildMap");
             fs.writeFileSync(newBuildMapFile,mapContents);
             operation = "publish";
         } else {
             let mapcontents = fs.readFileSync(buildMapFile,"UTF-8");
-            BuildMap = JSON.parse(mapcontents);
+            let serMap = JSON.parse(mapcontents);
+            BuildMap = new Map<String,String[]>();
+            Object.keys(serMap).forEach(k => BuildMap.set(k,serMap[k]));
+            
             operation = "deploy";
         }
         let buildEnv = tl.getInput("Environment",true);
