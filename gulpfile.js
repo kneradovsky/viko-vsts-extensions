@@ -25,6 +25,10 @@ gulp.task('build', function (cb) {
     make('build', cb);
 });
 
+gulp.task('generate',function(cb) {
+    make('generate',cb);
+})
+
 gulp.task('default', ['build']);
 
 gulp.task('test', function (cb) {

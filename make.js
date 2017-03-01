@@ -16,11 +16,13 @@ process.argv = options._;
 
 // modules
 var make = require('shelljs/make');
+var shell = require('shelljs');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var semver = require('semver');
 var util = require('./make-util');
+var uuid = require('node-uuid');
 
 // util functions
 var cd = util.cd;
@@ -565,4 +567,42 @@ target.makeExtensions = function() {
             cd(curdir);
         } 
     })
+}
+
+target.generate = function() {
+    var taskName = options.name;
+    var taskLocation = path.join(__dirname, 'Tasks', taskName);
+    var taskcodegen = path.join(__dirname,"codegen","task");
+    var taskFileName = taskName.toLowerCase()+".ts";
+    //create folder and copy files
+    mkdir('-p', taskLocation);
+    cp("-f", path.join(taskcodegen,"*.*"),taskLocation);
+    shell.mv(path.join(taskLocation,"task.ts"),path.join(taskLocation,taskFileName))
+    //generate guid
+    var taskId = uuid.v4();
+    //modify files
+    //package.json
+    var makeOptionsPath = path.join(__dirname,"make-options.json")
+    var makeOptions = JSON.parse(fs.readFileSync(makeOptionsPath));
+    var packagePath = path.join(taskLocation,"package.json");
+    var taskPkg = JSON.parse(fs.readFileSync(packagePath));
+    taskPkg.name = (makeOptions.packageName || "") + taskName.toLowerCase();
+    taskPkg.main = taskFileName;
+    taskPkg.author = makeOptions.authorName || taskPkg.author;
+    taskPkg.license = makeOptions.license || taskPkg.license;
+    fs.writeFileSync(packagePath,JSON.stringify(taskPkg,null,4));
+    //task.json
+    var taskDefPath = path.join(taskLocation,"task.json");
+    var taskDef = JSON.parse(fs.readFileSync(taskDefPath));
+    taskDef.id = taskId;
+    taskDef.friendlyName = taskDef.description = taskDef.name= taskName;
+    taskDef.author =  makeOptions.authorName || taskDef.author;
+    taskDef.instanceNameFormat = `${taskName} $(testparam)`;
+    taskDef.execution.Node.target = taskFileName;
+    fs.writeFileSync(taskDefPath,JSON.stringify(taskDef,null,4));
+    //modify makeOptions - add current task;
+    makeOptions.tasks.push(taskName);
+    fs.writeFileSync(makeOptionsPath,JSON.stringify(makeOptions,null,4));
+    //done
+    console.log(`${taskName} successfully created`);
 }

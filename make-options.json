@@ -1,8 +1,8 @@
 {
     "tasks": [
-    "ChainBuildsAwaiter",
-    "ChainBuildsStarter",
-    "AutoDefects"
+        "ChainBuildsAwaiter",
+        "ChainBuildsStarter",
+        "AutoDefects"
     ],
     "taskResources": [
         "*.ps1",
@@ -20,5 +20,8 @@
         "task.loc.json",
         "ssl",
         "Tests"
-    ]
+    ],
+    "packageName": "viko-extentions",
+    "authorName": "authorName",
+    "license": "Apache-2.0"
 }

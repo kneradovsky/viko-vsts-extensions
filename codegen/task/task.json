@@ -1,0 +1,38 @@
+{
+    "id": "77ac150d-b4c7-4628-8272-5385adafbec0",
+    "name": "ChainBuildsStarter",
+    "friendlyName": "Chain Builds Starter",
+    "description": "Starts builds entered in the Build List parameter",
+    "helpMarkDown": "",
+    "category": "Build",
+    "author": "kneradovsky",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "",
+    "groups": [
+    ],
+    "inputs": [
+        {
+            "name": "testparam",
+            "type": "string",
+            "label": "Param1",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Test parameter"
+        }
+        
+    ],
+    "execution": {
+        "Node": {
+            "target": "queuebuilds.js"
+        }
+    },
+    "messages" : {
+        "taskSucceeded": "All done",
+        "taskFailed": "Task Failed"
+    }
+
+}

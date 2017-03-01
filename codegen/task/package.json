@@ -1,0 +1,15 @@
+{
+  "name": "vsts-openbank-chainbuilds-starter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "queuebuilds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "kneradovsky",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "vso-node-api": "^5.1",
+    "vsts-task-lib": "^0.9"
+  }
+}
