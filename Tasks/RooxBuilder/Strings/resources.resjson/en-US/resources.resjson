@@ -1,0 +1,22 @@
+{
+  "loc.friendlyName": "Build Roox components",
+  "loc.helpMarkDown": "",
+  "loc.description": "Checks the last commit contents and starts separate jobs for its components",
+  "loc.instanceNameFormat": "Starts Roox Builds",
+  "loc.input.label.artefactsFolder": "Incoming artefacts folder",
+  "loc.input.help.artefactsFolder": "Folder name of the incoming artefacts",
+  "loc.input.label.buildMap": "Filename of the preBuilt components",
+  "loc.input.help.buildMap": "The name of the files with prebuild components dictionary",
+  "loc.input.label.Environment": "Environment",
+  "loc.input.help.Environment": "Environment to run build on",
+  "loc.input.label.ProxyJob": "Proxy Job",
+  "loc.input.help.ProxyJob": "The name of the proxy job that will start builds on the jenkins side",
+  "loc.messages.processingBuild": "Processing build %s",
+  "loc.messages.processingRun": "Processing test run %s",
+  "loc.messages.queuedBuilds": "Queued Builds %s",
+  "loc.messages.buildsToWait": "Builds to wait: %s",
+  "loc.messages.sleeping": "Sleeping %d between iteration",
+  "loc.messages.taskSucceeded": "All done",
+  "loc.messages.taskFailed": "Task Failed",
+  "loc.messages.testRunOutcome": "Test run outcome, total tests: %s, passed: %s"
+}
