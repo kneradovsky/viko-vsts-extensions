@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<head>
+    <script src="lib/VSS.SDK.min.js"></script>
+    <script type="text/javascript">
+        VSS.init( { 
+            usePlatformScripts: true, 
+            moduleLoaderConfig: { 
+                paths: { 
+                    "scripts": "scripts" 
+                } 
+            }
+        });
+        
+        VSS.ready(function() {
+            require(["scripts/action"], function (action) { 
+                VSS.register("queryExporter",function(context) {
+                    return action.ExporterAction;
+                })
+            });
+            
+        });      
+    </script>
+</head>
+
+<body>
+</body>
+</html>

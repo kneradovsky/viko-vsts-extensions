@@ -1,0 +1,15 @@
+{
+    "name": "viko-extentionsecabchecks",
+    "version": "1.0.0",
+    "description": "",
+    "main": "ecabchecks.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "authorName",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "vso-node-api": "^5.1",
+        "vsts-task-lib": "^0.9"
+    }
+}

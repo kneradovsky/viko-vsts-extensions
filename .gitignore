@@ -210,3 +210,5 @@ typings/
 
 #download
 _download
+_build
+*.vsix

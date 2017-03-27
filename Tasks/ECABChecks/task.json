@@ -1,0 +1,35 @@
+{
+    "id": "2633a82e-bd52-4952-b54c-e0e279c151ca",
+    "name": "ECABChecks",
+    "friendlyName": "ECABChecks",
+    "description": "ECABChecks",
+    "helpMarkDown": "",
+    "category": "Build",
+    "author": "authorName",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "ECABChecks $(testparam)",
+    "groups": [],
+    "inputs": [
+        {
+            "name": "testparam",
+            "type": "string",
+            "label": "Param1",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Test parameter"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "ecabchecks.ts"
+        }
+    },
+    "messages": {
+        "taskSucceeded": "All done",
+        "taskFailed": "Task Failed"
+    }
+}

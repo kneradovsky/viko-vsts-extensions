@@ -158,9 +158,9 @@ async function run() : Promise<number>{
 }
 
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("queuedBuilds","14755");
-tl.setVariable("Agent.BuildDirectory","/dev/temp/");
+// tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+// tl.setVariable("queuedBuilds","14755");
+// tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => {switch(r) {

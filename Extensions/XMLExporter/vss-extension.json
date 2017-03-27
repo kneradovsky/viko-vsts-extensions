@@ -1,0 +1,70 @@
+{
+    "manifestVersion": 1.0,
+    "id": "xmlexporter-query-results",
+    "version": "0.1.13",
+    "name": "WorkItems to XML Exporter",
+    "description": "Exports workitems found by an active query to xml format",
+    "public": false,
+    "publisher": "kneradovsky",
+    "icons": {
+        "default": "images/export-logo.png"
+    },
+    "tags": [
+        "WorkItem",
+	"Exporter"
+    ],
+    "categories": [
+        "Developer samples"
+    ],  
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "scopes": [
+        "vso.work", 
+        "vso.work_write"
+    ],
+    "files": [
+        {
+            "path": "images",
+            "addressable": true,
+            "packagePath" : "images"          
+        },
+        {
+            "path": "dist",
+            "addressable": true,
+            "packagePath" : "scripts"          
+            
+        }, 
+        {
+            "path": "export2xml.html",
+            "addressable": true
+        }, 
+        {
+            "path": "node_modules/vss-web-extension-sdk/lib",
+            "addressable": true,
+            "packagePath" : "lib"
+
+        }        
+    ],
+    "contributions": [
+        {
+            "id": "export-workitems-to-xml",
+            "type": "ms.vss-web.action",
+            "description": "Exports workitem data to xml",
+            "targets": [
+                "ms.vss-work-web.work-item-query-results-toolbar-menu"
+            ],
+            "properties": {
+                "text": "Export 2 xml",
+                "title": "Exports workitem data to xml",
+                "toolbarText": "Export to xml",
+                "icon": "images/export-button.png",
+                "group": "actions",
+                "uri": "export2xml.html",
+                "registeredObjectId": "queryExporter"
+            }
+        }
+    ]
+}
