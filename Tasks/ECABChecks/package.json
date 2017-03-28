@@ -10,6 +10,7 @@
     "license": "Apache-2.0",
     "dependencies": {
         "vso-node-api": "^5.1",
-        "vsts-task-lib": "^0.9"
+        "vsts-task-lib": "^0.9",
+	"vsts-specflow": "^1"
     }
 }

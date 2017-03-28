@@ -1,8 +1,5 @@
 {
     "tasks": [
-        "ChainBuildsAwaiter",
-        "ChainBuildsStarter",
-        "AutoDefects",
         "ECABChecks"
     ],
     "taskResources": [

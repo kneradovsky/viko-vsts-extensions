@@ -15,12 +15,12 @@
     "groups": [],
     "inputs": [
         {
-            "name": "testparam",
-            "type": "string",
-            "label": "Param1",
+            "name": "reqfields",
+            "type": "filePath",
+            "label": "required fields list filename",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Test parameter"
+            "helpMarkDown": ""
         }
     ],
     "execution": {

@@ -1,0 +1,35 @@
+{
+  "id": "2633a82e-bd52-4952-b54c-e0e279c151ca",
+  "name": "ECABChecks",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
+  "category": "Build",
+  "author": "authorName",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
+  "groups": [],
+  "inputs": [
+    {
+      "name": "reqfields",
+      "type": "filePath",
+      "label": "ms-resource:loc.input.label.reqfields",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": ""
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "ecabchecks.ts"
+    }
+  },
+  "messages": {
+    "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
+    "taskFailed": "ms-resource:loc.messages.taskFailed"
+  }
+}
