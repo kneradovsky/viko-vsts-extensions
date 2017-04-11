@@ -64,7 +64,7 @@ function createFieldResult(name:string,comment:string,outcome:string) : ti.TestC
 function checkTask(task : wi.WorkItem,fields: any[]) : boolean {
     let taskResult : ti.TestRun = Object.create(null);
     taskResult.createdDate = new Date();
-    taskResult.startedDate = taskResult.createdDate;
+    taskResult.startedDate = taskResult.completedDate = taskResult.createdDate;
     taskResult.name = task.fields["System.Title"];
     taskResult.buildConfiguration = Object.create(null);
     let fieldResults : ti.TestCaseResult[] = [];
@@ -74,7 +74,6 @@ function checkTask(task : wi.WorkItem,fields: any[]) : boolean {
         let comment = "",name = field.name,outcome = "Failed";
         if(fieldValue!=field.value) {
             comment = `Expected ${field.value}, actual ${fieldValue}`;
-            outcome = "Failed";
             isFailed = true;
         } else {
             outcome = "Passed";
@@ -103,6 +102,7 @@ async function run() {
     let projId = tl.getVariable("System.TeamProjectId");
     try {
         let reqFieldsFile = tl.getPathInput("reqfields");
+        let taskListFile = tl.getPathInput("taskfile");
         let reqFields = JSON.parse(fs.readFileSync(reqFieldsFile).toString());
         let api = new ApiHelper().getApi();
         let wapi = api.getWorkItemTrackingApi()
@@ -111,8 +111,10 @@ async function run() {
         let checkedTaskCount = 0;
         for(let t of tasks)
             if(checkTask(t,reqFields)) checkedTaskCount++;
+        //store task data to the file
+        fs.writeFileSync(taskListFile,JSON.stringify(tasks,null,4));
         //1 - passed, 2 - passed with issues, 3 - failed
-        let result = checkedTaskCount==tasksInCommit.length ? 1 : 2;
+        let result = checkedTaskCount==tasksInCommit.length ? 1 : 3;
         let res = Q.defer<number>();
         res.resolve(result);
         return res.promise;
@@ -123,8 +125,8 @@ async function run() {
     }
 }
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-tl.setVariable("Build.Repository.LocalPath","/dev/temp/ecbtest");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("Build.Repository.LocalPath","/dev/temp/ecbtest");
 run()
 .then(r => {switch(r) {
     case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;

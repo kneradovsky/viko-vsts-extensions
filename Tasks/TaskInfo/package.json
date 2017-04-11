@@ -1,8 +1,8 @@
 {
-    "name": "viko-extentionsecabchecks",
+    "name": "viko-extentionstaskinfo",
     "version": "1.0.0",
     "description": "",
-    "main": "ecabchecks.ts",
+    "main": "taskinfo.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -10,8 +10,6 @@
     "license": "Apache-2.0",
     "dependencies": {
         "vso-node-api": "^5.1",
-        "vsts-task-lib": "^0.9",
-	"vsts-specflow": "^1",
-	"node-trx" : "^0.7"
+        "vsts-task-lib": "^0.9"
     }
 }

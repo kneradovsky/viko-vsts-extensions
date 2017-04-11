@@ -1,6 +1,7 @@
 {
     "tasks": [
-        "ECABChecks"
+        "ECABChecks",
+        "TaskInfo"
     ],
     "taskResources": [
         "*.ps1",

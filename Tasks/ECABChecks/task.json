@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 0
+        "Patch": 6
     },
     "instanceNameFormat": "ECABChecks $(testparam)",
     "groups": [],
@@ -21,11 +21,20 @@
             "defaultValue": "",
             "required": true,
             "helpMarkDown": ""
+        },
+        {
+            "name": "taskfile",
+            "type": "filePath",
+            "label": "filename to store commit tasks",
+            "defaultValue": "taskfile.json",
+            "required": true,
+            "helpMarkDown": ""
         }
+        
     ],
     "execution": {
         "Node": {
-            "target": "ecabchecks.ts"
+            "target": "ecabchecks.js"
         }
     },
     "messages": {
