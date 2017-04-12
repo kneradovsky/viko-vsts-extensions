@@ -14,7 +14,22 @@ import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 
-var buildList = [];
+class BuildDefFullName {
+    path : string;
+    name : string;
+    constructor(bdname : string) {
+        let p = path.parse(bdname)
+        this.path=p.dir
+        this.name=p.name
+        return this
+    };
+    matchBuildDefinition(bd : bi.BuildDefinitionReference) : boolean {
+        tl.debug(`${bd.path}|${bd.name} === ${this.path}|${this.name}`);
+        if((bd.path===undefined || this.path == "" ||bd.path==this.path) && bd.name == this.name) return true;
+        return false;
+    }
+}
+var buildList : BuildDefFullName[] = [];
 var buildDefinitions = [];
 
 var apihelper = new ApiHelper();
@@ -24,7 +39,7 @@ let api = apihelper.getApi();
 async function run() {
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     let projId = tl.getVariable("System.TeamProjectId");
-    let buildList = tl.getInput("buildList").split(",");
+    let buildList = tl.getInput("buildList").split(",").map(bdname => new BuildDefFullName(bdname));
     let buildNumbersStr = tl.getVariable("queuedBuilds") || "";
     tl._writeLine(tl.loc("previousBuilds",buildNumbersStr));
     var buildNumbers=[];
@@ -34,7 +49,7 @@ async function run() {
         let bapi = api.getBuildApi();
         //map buildname to build def numbers and filter out drafts
         let defNumbers = (await bapi.getDefinitions(projId))
-                         .filter(bdr => buildList.findIndex(e => e==bdr.name)!=-1) //find build definitions that matches names from buildList
+                         .filter(bdr => buildList.findIndex(e => e.matchBuildDefinition(bdr))!=-1) //find build definitions that matches names from buildList
                          .filter(bdr => bdr.quality==bi.DefinitionQuality.Definition).map(bdr => bdr.id); //filter out drafts
         
         for(let bid of defNumbers) {
@@ -60,7 +75,8 @@ async function run() {
     }
 }
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("System.TeamProjectId","53ec0ece-275a-4f05-ba58-adddbcbe5dca");
 //tl.setVariable("Build.BuildId","10511");
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded")))
