@@ -53,6 +53,7 @@ function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
             endTime: tres.completedDate.toISOString()            
         });
     }
+    
     var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}.trx`);
     fs.writeFileSync(filepath,run.toXml());
     testPublisher.publish(filepath,"false",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name,"false");
@@ -99,7 +100,7 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
         var testRuns = await api.getTestApi().getTestRuns(projId,`vstfs:///Build/Build/${buildId}`);
         for(var testRun of testRuns) {
             console.log(tl.loc("processingRun",testRun.name));
-            var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id); 
+            var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id);
             processTestRun(testRunDetailed);
             console.log(tl.loc("testRunOutcome",testRun.totalTests,testRun.passedTests));
             passedTests+=testRun.passedTests;

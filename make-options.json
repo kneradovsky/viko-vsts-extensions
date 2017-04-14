@@ -1,6 +1,8 @@
 {
     "tasks": [
-        "ECABChecks"
+        "AutoDefects",
+        "ChainBuildsAwaiter",
+        "ChainBuildsStarter"
     ],
     "taskResources": [
         "*.ps1",
