@@ -39,7 +39,7 @@ let api = apihelper.getApi();
 async function run() {
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     let projId = tl.getVariable("System.TeamProjectId");
-    let buildList = tl.getInput("buildList").split(",").map(bdname => new BuildDefFullName(bdname));
+    let buildList = tl.getInput("buildList").split(",").map(s => s.trim()).map(bdname => new BuildDefFullName(bdname));
     let buildNumbersStr = tl.getVariable("queuedBuilds") || "";
     tl._writeLine(tl.loc("previousBuilds",buildNumbersStr));
     var buildNumbers=[];

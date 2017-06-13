@@ -1,0 +1,10 @@
+{
+  "loc.friendlyName": "ECABChecks",
+  "loc.helpMarkDown": "",
+  "loc.description": "ECABChecks",
+  "loc.instanceNameFormat": "ECABChecks $(testparam)",
+  "loc.input.label.reqfields": "required fields list filename",
+  "loc.input.label.taskfile": "filename to store commit tasks",
+  "loc.messages.taskSucceeded": "All done",
+  "loc.messages.taskFailed": "Task Failed"
+}

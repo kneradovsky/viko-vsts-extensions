@@ -28,6 +28,7 @@ var passedTests=0,totalTests=0;
 var hasFailedBuilds=false;
 let jobsResult:ti.TestRun = Object.create(null);
 let buildResults:ti.TestCaseResult[] = [];
+var testrunIdx=0;
 
 function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
     var run = new trx.TestRun({name: testRun.name,
@@ -54,9 +55,10 @@ function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
         });
     }
     
-    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}.trx`);
+    var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`${testRun.name}${testrunIdx}.trx`);
     fs.writeFileSync(filepath,run.toXml());
-    testPublisher.publish(filepath,"false",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name,"false");
+    testPublisher.publish(filepath,"true",testRun.buildConfiguration.platform,testRun.buildConfiguration.flavor,testRun.name+testrunIdx,"false");
+    testrunIdx++
 }
 
 async function processTestRun(testRun:ti.TestRun) {
@@ -107,7 +109,7 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
             totalTests+=testRun.totalTests;
         }
     }
-
+ 
     return remainBuilds;    
 }
 

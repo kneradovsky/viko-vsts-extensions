@@ -1,0 +1,35 @@
+{
+  "id": "29510104-5d85-4902-86ce-e2052c0432fa",
+  "name": "TaskInfo",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
+  "category": "Build",
+  "author": "authorName",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 1
+  },
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
+  "groups": [],
+  "inputs": [
+    {
+      "name": "tasksfile",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.tasksfile",
+      "defaultValue": "taskfile.json",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.tasksfile"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "taskinfo.js"
+    }
+  },
+  "messages": {
+    "taskSucceeded": "ms-resource:loc.messages.taskSucceeded",
+    "taskFailed": "ms-resource:loc.messages.taskFailed"
+  }
+}

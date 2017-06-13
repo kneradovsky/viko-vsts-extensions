@@ -1,0 +1,65 @@
+{
+    "manifestVersion": 1.0,
+    "id": "continious-delivery-task-buttons",
+    "version": "0.1.6"  ,
+    "name": "CD WorkItems Buttons",
+    "description": "Adds CD actions to the workitems",
+    "public": false,
+    "publisher": "kneradovsky",
+    "icons": {
+        "default": "images/logo.png"
+    },
+    "tags": [
+        "WorkItem",
+	"Exporter"
+    ],
+    "categories": [
+        "Developer samples"
+    ],  
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "scopes": [
+        "vso.work", 
+        "vso.work_write"
+    ],
+    "files": [
+        {
+            "path": "scripts",
+            "addressable": true
+        },
+        {
+            "path": "images",
+            "addressable": true
+        },
+        {
+            "path": "main.html",
+            "addressable": true
+        },     
+        {
+            "path": "node_modules/vss-web-extension-sdk/lib",
+            "addressable": true
+        }    
+    ],
+    "contributions": [
+       {
+            "id": "showTaskProperties",
+            "type": "ms.vss-web.action",
+            "description": "Shows the target properties for menu actions for the work item form's toolbar menu",
+            "targets": [
+                "ms.vss-work-web.work-item-toolbar-menu"
+            ],
+            "properties": {
+                "text": "Custom work item toolbar action",
+                "title": "ms.vss-work-web.work-item-toolbar-menu",
+                "toolbarText": "Show Work Item properties",
+                "icon": "images/show-properties.png",
+                "group": "actions",
+                "uri": "main.html",
+                "registeredObjectId": "showTaskProperties"
+            }
+        }
+    ]
+}
