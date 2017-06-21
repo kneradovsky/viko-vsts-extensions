@@ -1,7 +1,7 @@
-var showPropertiesMenuProvider = (function () {
+var executeCDActionsProvider = (function () {
     "use strict";
     return {
-        showPropertiesInDialog: function(properties, title) {
+        showExecuteActionsDialog: function(properties, title) {
             
             VSS.getService("ms.vss-web.dialog-service").then(function (dialogSvc) {
                 
@@ -9,16 +9,15 @@ var showPropertiesMenuProvider = (function () {
                 
                 var dialogOptions = {
                     title: title || "Properties",
-                    width: 800,
-                    height: 600,
+                    width: 600,
+                    height: 400,
                     buttons: null
                 };
                 
                 var contributionConfig = { 
                     properties: properties
                 };
-                
-                dialogSvc.openDialog(extInfo.publisherId + "." + extInfo.extensionId + "." + "contextForm", dialogOptions, contributionConfig);
+                dialogSvc.openDialog(extInfo.publisherId + "." + extInfo.extensionId + "." + "executeActions", dialogOptions, contributionConfig);
             });
         },
         properties : {
@@ -30,17 +29,11 @@ var showPropertiesMenuProvider = (function () {
             }
         },
         execute: function(actionContext) {
-            var item = VSS.getContribution();
-            console.log("--1---");
-            console.log(item);
-            console.log("--2---");
-            console.log(actionContext);
-            //this.showPropertiesInDialog(actionContext);
-            this.properties.text = "aaaa";
+            this.showExecuteActionsDialog(actionContext);
         }
     };
 }());
 
-VSS.register("showTaskProperties", function (context) {
-    return showPropertiesMenuProvider;
+VSS.register("executeCDActions", function (context) {
+    return executeCDActionsProvider;
 });

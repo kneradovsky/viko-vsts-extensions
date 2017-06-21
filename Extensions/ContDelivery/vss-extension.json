@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1.0,
     "id": "continious-delivery-task-buttons",
-    "version": "0.1.6"  ,
+    "version": "0.1.26"  ,
     "name": "CD WorkItems Buttons",
     "description": "Adds CD actions to the workitems",
     "public": false,
@@ -31,6 +31,10 @@
             "addressable": true
         },
         {
+            "path": "sdk",
+            "addressable": true
+        },
+        {
             "path": "images",
             "addressable": true
         },
@@ -39,9 +43,9 @@
             "addressable": true
         },     
         {
-            "path": "node_modules/vss-web-extension-sdk/lib",
+            "path": "executeActions.html",
             "addressable": true
-        }    
+        }  
     ],
     "contributions": [
        {
@@ -52,14 +56,24 @@
                 "ms.vss-work-web.work-item-toolbar-menu"
             ],
             "properties": {
-                "text": "Custom work item toolbar action",
+                "text": "CD Actions",
                 "title": "ms.vss-work-web.work-item-toolbar-menu",
-                "toolbarText": "Show Work Item properties",
+                "toolbarText": "Starts CD Actions on item",
                 "icon": "images/show-properties.png",
                 "group": "actions",
                 "uri": "main.html",
-                "registeredObjectId": "showTaskProperties"
+                "registeredObjectId": "executeCDActions"
             }
-        }
+        },
+        {
+            "id": "executeActions",
+            "targets": [
+                ".controls"
+            ],
+            "type": "ms.vss-web.control",
+            "properties": {
+                "uri": "executeActions.html"
+            }
+        }        
     ]
 }

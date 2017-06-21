@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html style="background-color:inherit;height:100%;" ng-app="ExecActions">
+
+<head>
+    <title>Enhanced Export</title>
+    <link rel="stylesheet" href="css/app.css" />
+
+
+    <script src="sdk/scripts/jquery_2.1.4.min.js"></script>
+    <script src="sdk/scripts/q.js"></script>
+    <script src="sdk/scripts/angular_1.3.14.min.js"></script>
+    <script src="sdk/scripts/jquery_2.1.4.min.js"></script>
+
+    <script src="sdk/scripts/VSS.SDK.js"></script>
+
+    <script src="scripts/BuildsService.js"></script>
+
+</head>
+
+<body style="background-color:inherit;height:100%;">
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true
+        });
+        var app = angular.module('ExecActions', ['ExecActions.services']);
+        app.controller("ActionsController", ['$scope', '$http', '$injector', '$interval', function ($scope, $http, $injector, $interval) {
+            this.AdminUrl = "";
+            this.Templates = [];
+            this.cdReportLines = [0, -1, -2];
+            this.selectedTemplate = null;
+            this.isCancelled = false;
+            this.ErrorMsg = "";
+            this.wiContent = "";
+            this.workItem = null;
+
+            var ctrl = this;
+            this.count = 0;
+            var intPromise = null;
+
+            this.stopInterval = function (event, data) {
+                $interval.cancel(this.intPromise);
+            }
+
+            this.restartInterval = function (event, data) {
+                this.cdReportLines = []
+                this.intPromise = $interval(
+                    function () {
+                        ctrl.cdReportLines.push(ctrl.count++)
+                        console.log(ctrl.count);
+                    }, 1000);
+            }
+
+            this.startBuilds = function(workItem, rollback) {
+                if(rollback===undefined) rollback=false;
+                var wiType =workItem.fields["System.WorkItemType"]
+                var wiSystem = workItem.fields["Logrocon.System"]
+                var systemInCD = this.BuildsService.isSystemInCD(wiSystem);
+                if(systemInCD) {
+                    var build = this.BuildsService.getBuild(wiSystem,wiType);
+                    this.wiContent = JSON.stringify(build,null,4);
+                    if(build.type=='tfs')
+                        this.processBuild(build);
+                    else {
+                        $.post(build.url,{taskId:workItem.id},null,'json');
+                        this.wiContent += '<br/> build started on jenkins';
+                    }
+                } else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
+                $scope.$apply();
+
+            }
+
+            this.processBuild = function(build) {
+                var ctrl = this;
+                 VSS.require(["VSS/Controls", "VSS/Service", "TFS/Build/RestClient","TFS/Build/Contracts", "VSS/Utils/Html"],
+                 function (Controls, VSS_Service, TFS_Build_WebApi, TFS_Build_Contract) {
+
+                     var buildClient = VSS_Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
+                     var config = VSS.getConfiguration();
+                     var projId =config.project;
+                     buildClient.getDefinitions(projId,build.buildDefinition).then(function(buildDefs) {
+                        var bdId = buildDefs[0].id;
+                        var qb = {
+                            definition : {id: bdId}
+                        }
+                        buildClient.queueBuild(qb,projId,true).then(function(build) {
+                            ctrl.wiContent = "Build started <br/>" + JSON.stringify(build,null,4)
+                             $scope.$apply();
+                        })
+                     })
+                });
+            }
+
+            this.deployWorkItem =function (event,data) {
+                this.startBuilds(this.workItem,false);
+                $("#buttonsPlaceHolder").hide('fast');
+            }
+            
+            this.revertDeployWorkItem = function(event,data) {
+                this.startBuilds(this.workItem,true);
+                $("#buttonsPlaceHolder").hide('fast');
+            }
+
+            VSS.ready(function () {
+                ctrl.BuildsService = $injector.get("BuildsConfigurationService");
+
+                VSS.require(["VSS/WebApi/Constants", "VSS/Service", "TFS/TestManagement/RestClient", "VSS/Utils/Date", "VSS/Utils/String", "TFS/WorkItemTracking/RestClient", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/Contracts"],
+                    function (WebApi_Constants, Service, RestClient, UtilsDate, UtilsString, TFS_Wit_WebApi, _TFS_Wit_Contract, _TestContracts) {
+                        TFS_Wit_Contract = _TFS_Wit_Contract;
+                        TestContracts = _TestContracts;
+                        Utils_Date = UtilsDate;
+                        Utils_String = UtilsString;
+
+                        // Get an instance of the client
+                        var client = Service.VssConnection.getConnection()
+                            .getHttpClient(RestClient.TestHttpClient, WebApi_Constants.ServiceInstanceTypes.TFS);
+                        var witClient = Service.getCollectionClient(TFS_Wit_WebApi.WorkItemTrackingHttpClient);
+                        var config = VSS.getConfiguration();
+                        witClient.getWorkItem(config.properties.workItemId,null,null,TFS_Wit_Contract.WorkItemExpand.All).then(function (workItem) {
+                            console.log("workItem")
+                            console.log(workItem)
+                            ctrl.workItem =workItem;
+                            if(workItem.fields["System.WorkItemType"]=='Task')
+                                ctrl.startBuilds(workItem);
+                            else {
+                                $("#buttonsPlaceHolder").show('fast');
+                            }
+                            VSS.notifyLoadSucceeded();
+                        });
+                    });
+            });
+            this.StartLoading = function (longRunning, message) {
+                $("body").css("cursor", "progress");
+                if (longRunning) {
+                    if (ctrl.waitControl == null) {
+                        var waitControlOptions = {
+                            target: $(".wait-control-target"),
+                            message: message,
+                            cancellable: true,
+                            cancelTextFormat: "{0} to cancel",
+                            cancelCallback: function () {
+                                console.log("cancelled");
+                            }
+                        };
+
+                        VSS.require(["VSS/Controls/StatusIndicator", "VSS/Controls"], function (StatusIndicator, Controls) {
+                            ctrl.waitControl = Controls.create(StatusIndicator.WaitControl, $("#previewHTML"), waitControlOptions);
+                            ctrl.waitControl.startWait();
+                        });
+                    }
+                    else {
+                        ctrl.waitControl.setMessage(message);
+                        ctrl.waitControl.startWait();
+                    }
+                }
+
+            }
+
+            this.DoneLoading = function () {
+                $("body").css("cursor", "default");
+
+                if (ctrl.waitControl != null) {
+                    ctrl.waitControl.endWait();
+                }
+
+            }
+
+            this.ProgressUpdate = function (message) {
+                if (ctrl.waitControl != null) {
+                    ctrl.waitControl.setMessage(message);
+                    return !ctrl.waitControl.isCancelled();
+                }
+                else {
+                    return true;
+                }
+            }
+        }]);
+    </script>
+
+    <div ng-controller="ActionsController as ctrl" style="display:flex; flex-direction:column;height:100%;">
+        <div class="message-area-control closeable error-message" style="max-height:80px; overflow-x:hidden; overflow-y:auto;" ng-show="ctrl.ErrorMsg!=''">{{ctrl.ErrorMsg}}</div>
+        <div id="mainDiv" style="display:flex; flex-direction:column;height:80%;visibility:visible;">
+            <ul>
+                <li ng-repeat="line in ctrl.cdReportLines">
+                    {{line}}
+                </li>
+            </ul>
+            <div>
+                {{ctrl.wiContent}}
+            </div>
+            <div id="buttonsPH" style="visibility:hidden">
+                <button ng-click="ctrl.deployWorkItem()">Deploy user story</button>
+                <button ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
+            </div>
+        </div>
+        <div id="footer" style="width:100%;text-align:right;height:20px;">
+            <hr/>
+            <div id="buttonsPH" style="visibility:hidden">
+                <button ng-click="ctrl.deployWorkItem()">Deploy user story</button>
+                <button ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
+            </div>            
+        </div>
+        <div class="wait-control-target"></div>
+    </div>
+</body>
