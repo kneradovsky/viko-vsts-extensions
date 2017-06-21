@@ -7,28 +7,14 @@ import fs = require('fs');
 import Q = require("q");
 
 import * as vm from 'vso-node-api';
-import {ApiHelper} from 'vsts-specflow/apihelper';
+import {ApiHelper, BuildDefFullName} from 'vsts-specflow/apihelper';
 import {Feature,Scenario} from  'vsts-specflow/specflow';
 import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 
-class BuildDefFullName {
-    path : string;
-    name : string;
-    constructor(bdname : string) {
-        let p = path.parse(bdname)
-        this.path=p.dir
-        this.name=p.name
-        return this
-    };
-    matchBuildDefinition(bd : bi.BuildDefinitionReference) : boolean {
-        tl.debug(`${bd.path}|${bd.name} === ${this.path}|${this.name}`);
-        if((bd.path===undefined || this.path == "" ||bd.path==this.path) && bd.name == this.name) return true;
-        return false;
-    }
-}
+
 var buildList : BuildDefFullName[] = [];
 var buildDefinitions = [];
 

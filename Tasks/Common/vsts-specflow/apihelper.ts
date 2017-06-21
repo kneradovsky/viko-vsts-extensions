@@ -5,6 +5,7 @@ import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import {Feature,Scenario,EntityIds,SuiteTestCases} from  './specflow';
 import Q = require('q');
+import path = require('path');
 
 
 
@@ -57,8 +58,32 @@ export class ApiHelper {
         retval.resolve(cases);
         return retval.promise;
     }
+
+    async getBuildDefIdByName(projectId : string, buildList: BuildDefFullName[]) : Promise<number[]> {
+        let bapi = this.webApi.getBuildApi();
+        let buildNumbers = (await bapi.getDefinitions(projectId))
+            .filter(bdr => buildList.findIndex(e => e.matchBuildDefinition(bdr))!=-1) //find build definitions that matches names from buildList
+            .filter(bdr => bdr.quality==bi.DefinitionQuality.Definition).map(bdr => bdr.id); //filter out drafts
+        let res = Q.defer<number[]>();
+        res.resolve(buildNumbers);
+        return res.promise;
+    }
 }
 
 
 
- 
+export class BuildDefFullName {
+    path : string;
+    name : string;
+    constructor(bdname : string) {
+        let p = path.parse(bdname)
+        this.path=p.dir
+        this.name=p.name
+        return this
+    };
+    matchBuildDefinition(bd : bi.BuildDefinitionReference) : boolean {
+        tl.debug(`${bd.path}|${bd.name} === ${this.path}|${this.name}`);
+        if((bd.path===undefined || this.path == "" ||bd.path==this.path) && bd.name == this.name) return true;
+        return false;
+    }
+} 
