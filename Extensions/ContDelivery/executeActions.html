@@ -28,7 +28,7 @@
         app.controller("ActionsController", ['$scope', '$http', '$injector', '$interval', function ($scope, $http, $injector, $interval) {
             this.AdminUrl = "";
             this.Templates = [];
-            this.cdReportLines = [0, -1, -2];
+            this.cdReportLines = [];
             this.selectedTemplate = null;
             this.isCancelled = false;
             this.ErrorMsg = "";
@@ -54,21 +54,26 @@
 
             this.startBuilds = function(workItem, rollback) {
                 if(rollback===undefined) rollback=false;
+                var build = undefined;
                 var wiType =workItem.fields["System.WorkItemType"]
-                var wiSystem = workItem.fields["Logrocon.System"]
-                var systemInCD = this.BuildsService.isSystemInCD(wiSystem);
-                if(systemInCD) {
-                    var build = this.BuildsService.getBuild(wiSystem,wiType);
+                if(wiType=="User Story") build = this.BuildsService.getUSBuild(rollback ? "rollback" : "install")
+                else {
+                    var wiSystem = workItem.fields["Logrocon.System"]
+                    var systemInCD = this.BuildsService.isSystemInCD(wiSystem);
+                    if(systemInCD) 
+                        build = this.BuildsService.getBuild(wiSystem,wiType);
+                }
+                if(build!=undefined) {
                     this.wiContent = JSON.stringify(build,null,4);
                     if(build.type=='tfs')
                         this.processBuild(build);
                     else {
                         $.post(build.url,{taskId:workItem.id},null,'json');
-                        this.wiContent += '<br/> build started on jenkins';
+                        this.wiContent += '<br/> build started on jenkins -'+build.url;
                     }
-                } else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
+                }
+                else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
                 $scope.$apply();
-
             }
 
             this.processBuild = function(build) {
@@ -189,14 +194,10 @@
             <div>
                 {{ctrl.wiContent}}
             </div>
-            <div id="buttonsPH" style="visibility:hidden">
-                <button ng-click="ctrl.deployWorkItem()">Deploy user story</button>
-                <button ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
-            </div>
         </div>
         <div id="footer" style="width:100%;text-align:right;height:20px;">
             <hr/>
-            <div id="buttonsPH" style="visibility:hidden">
+            <div id="buttonsPlaceHolder" style="visibility:hidden">
                 <button ng-click="ctrl.deployWorkItem()">Deploy user story</button>
                 <button ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
             </div>            

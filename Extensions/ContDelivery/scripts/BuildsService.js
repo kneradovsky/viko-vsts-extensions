@@ -28,6 +28,16 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
             }
         }
     }
+    this.USBuilds = {
+        install : {
+            type: "tfs",
+            buildDefinition: "US_InstallCD"
+        },
+        rollback : {
+            type: "tfs",
+            buildDefinition: "US_RevertCD"
+        }
+    }
 
     this.execute = function (progressCallback) {
         var deffered = $.Deferred();
@@ -38,8 +48,11 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
     this.init = function (configutation) {
     };
 
-    this.getBuild = function(system,type) {
-        return this.Builds[system][type];
+    this.getBuild = function(system) {
+        return this.Builds[system]["Task"];
+    }
+    this.getUSBuild = function(type) {
+        return this.USBuilds[type]
     }
 
 

@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1.0,
     "id": "continious-delivery-task-buttons",
-    "version": "0.1.27"  ,
+    "version": "0.1.29"  ,
     "name": "CD WorkItems Buttons",
     "description": "Adds CD actions to the workitems",
     "public": false,
@@ -19,6 +19,9 @@
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
+        },
+        {
+            "id": "Microsoft.TeamFoundation.Server"
         }
     ],
     "scopes": [
