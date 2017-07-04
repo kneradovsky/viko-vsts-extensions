@@ -19,6 +19,16 @@
 
 <body style="background-color:inherit;height:100%;">
     <script type="text/javascript">
+Array.prototype.unique = function () {
+    var n = {}, r = [];
+    for (var i = 0; i < this.length; i++) {
+        if (!n[this[i]]) {
+            n[this[i]] = true;
+            r.push(this[i]);
+        }
+    }
+    return r;
+}    
         VSS.init({
             explicitNotifyLoaded: true,
             usePlatformScripts: true,
@@ -29,6 +39,7 @@
             this.AdminUrl = "";
             this.Templates = [];
             this.cdReportLines = [];
+            this.containerNames = [];
             this.selectedTemplate = null;
             this.isCancelled = false;
             this.ErrorMsg = "";
@@ -73,14 +84,14 @@
                     }
                 }
                 else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
-                $scope.$apply();
             }
 
             this.processBuild = function(build) {
                 var ctrl = this;
-                 VSS.require(["VSS/Controls", "VSS/Service", "TFS/Build/RestClient","TFS/Build/Contracts", "VSS/Utils/Html"],
-                 function (Controls, VSS_Service, TFS_Build_WebApi, TFS_Build_Contract) {
-
+                 VSS.require(["VSS/WebApi/Constants","VSS/Controls", "VSS/Service", "TFS/Build/RestClient","TFS/Build/Contracts", "VSS/Utils/Html"],
+                 function (WebApi_Constants,Controls, VSS_Service, TFS_Build_WebApi, TFS_Build_Contract) {
+                    var client = VSS_Service.VssConnection.getConnection()
+                            .getHttpClient(TFS_Build_WebApi.BuildHttpClient, WebApi_Constants.ServiceInstanceTypes.TFS);
                      var buildClient = VSS_Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
                      var config = VSS.getConfiguration();
                      var projId =config.project;
@@ -122,16 +133,52 @@
                             .getHttpClient(RestClient.TestHttpClient, WebApi_Constants.ServiceInstanceTypes.TFS);
                         var witClient = Service.getCollectionClient(TFS_Wit_WebApi.WorkItemTrackingHttpClient);
                         var config = VSS.getConfiguration();
-                        witClient.getWorkItem(config.properties.workItemId,null,null,TFS_Wit_Contract.WorkItemExpand.All).then(function (workItem) {
+                        witClient.getWorkItem(config.properties.workItemId,null,null,"All").then(function (workItem) {
                             console.log("workItem")
                             console.log(workItem)
                             ctrl.workItem =workItem;
-                            if(workItem.fields["System.WorkItemType"]=='Task')
+                            if(workItem.fields["System.WorkItemType"]=='Task') {
                                 ctrl.startBuilds(workItem);
+                                VSS.notifyLoadSucceeded();
+                                $scope.$apply();
+                            }
                             else {
+                                //load userstory links to tasks
+                                var linksIds = workItem.relations.filter(function(link) {return link.rel == 'System.LinkTypes.Hierarchy-Forward'})
+                                                .map(function(link) { return link.url.split("/").pop() })
+                                                .map(function(strid) {return Number.parseInt(strid)})
+                                                .unique();
+                                witClient.getWorkItems(linksIds, undefined, null, "All")
+                                .then(function(taskList) {
+                                    var containerLinkIds = [];
+                                    taskList.forEach(function(t) { 
+                                        var ids = t.relations
+                                            .filter(function(link) {return link.rel == 'Microsoft.VSTS.TestCase.SharedParameterReferencedBy-Forward'})
+                                            .map(function(link) { return link.url.split("/").pop() })
+                                            .map(function(strid) {return Number.parseInt(strid)});
+                                        containerLinkIds = containerLinkIds.concat(ids);
+                                    });
+                                    containerLinkIds = containerLinkIds.unique();
+                                    witClient.getWorkItems(containerLinkIds,undefined,null,"All")
+                                    .then(function(reltaskList) {
+                                        ctrl.containerNames =reltaskList.filter(function(rt) {
+                                            return rt.fields['System.Title'].startsWith("container")
+                                        }).map(function(rt) {return rt.fields['System.Title']})
+                                        
+                                        VSS.notifyLoadSucceeded();
+                                        $scope.$apply();
+                                    },function(error) {
+                                        currentError = error;
+                                        VSS.notifyLoadSucceeded();
+                                        $scope.$apply();
+                                    })
+                                },function(error) {
+                                        currentError = error;
+                                        VSS.notifyLoadSucceeded();
+                                        $scope.$apply();
+                                })
                                 $("#buttonsPlaceHolder").show('fast');
                             }
-                            VSS.notifyLoadSucceeded();
                         });
                     });
             });
@@ -187,7 +234,7 @@
         <div class="message-area-control closeable error-message" style="max-height:80px; overflow-x:hidden; overflow-y:auto;" ng-show="ctrl.ErrorMsg!=''">{{ctrl.ErrorMsg}}</div>
         <div id="mainDiv" style="display:flex; flex-direction:column;height:80%;visibility:visible;">
             <ul>
-                <li ng-repeat="line in ctrl.cdReportLines">
+                <li ng-repeat="line in ctrl.containerNames">
                     {{line}}
                 </li>
             </ul>
@@ -197,7 +244,7 @@
         </div>
         <div id="footer" style="width:100%;text-align:right;height:20px;">
             <hr/>
-            <div id="buttonsPlaceHolder" style="visibility:hidden">
+            <div id="buttonsPlaceHolder" style="display:none">
                 <button ng-click="ctrl.deployWorkItem()">Deploy user story</button>
                 <button ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
             </div>            

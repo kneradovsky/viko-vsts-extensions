@@ -55,6 +55,9 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
         return this.USBuilds[type]
     }
 
+    this.isSystemInCD = function(system) {
+        return this.Builds.hasOwnProperty(system)
+    }
 
     this.ProgressMessage = function (message) {
         if (this.progressCallback != null) {
