@@ -35,6 +35,9 @@ Array.prototype.unique = function () {
             usePlatformStyles: true
         });
         var app = angular.module('ExecActions', ['ExecActions.services']);
+        app.filter('hideEmptyContent',function() {
+            return function(input) {return input == "" ? "hidden" : "visible"}
+        })
         app.controller("ActionsController", ['$scope', '$http', '$injector', '$interval', function ($scope, $http, $injector, $interval) {
             this.AdminUrl = "";
             this.Templates = [];
@@ -64,6 +67,7 @@ Array.prototype.unique = function () {
             }
 
             this.startBuilds = function(workItem, rollback) {
+                ctrl=this;
                 if(rollback===undefined) rollback=false;
                 var build = undefined;
                 var wiType =workItem.fields["System.WorkItemType"]
@@ -75,12 +79,16 @@ Array.prototype.unique = function () {
                         build = this.BuildsService.getBuild(wiSystem,wiType);
                 }
                 if(build!=undefined) {
+                    var buildParams = {taskId:workItem.id,containers: this.containerNames}
                     this.wiContent = JSON.stringify(build,null,4);
-                    if(build.type=='tfs')
+                    if(build.type=='tfs') {
+                        build.buildParams =buildParams;
                         this.processBuild(build);
-                    else {
-                        $.post(build.url,{taskId:workItem.id},null,'json');
-                        this.wiContent += '<br/> build started on jenkins -'+build.url;
+                    } else {
+                        $.post(build.url,buildParams,null,'json')
+                            .fail(function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()});
+                        this.wiContent = 'build started on jenkins - '+build.url
+                        this.wiContent += '\n Parameters:' + JSON.stringify(buildParams,null,4)
                     }
                 }
                 else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
@@ -88,24 +96,35 @@ Array.prototype.unique = function () {
 
             this.processBuild = function(build) {
                 var ctrl = this;
-                 VSS.require(["VSS/WebApi/Constants","VSS/Controls", "VSS/Service", "TFS/Build/RestClient","TFS/Build/Contracts", "VSS/Utils/Html"],
-                 function (WebApi_Constants,Controls, VSS_Service, TFS_Build_WebApi, TFS_Build_Contract) {
+                 VSS.require(["VSS/WebApi/Constants","VSS/Controls", "VSS/Service", "TFS/Build/RestClient","TFS/Build/Contracts", "VSS/Utils/Html","TFS/WorkItemTracking/RestClient"],
+                 function (WebApi_Constants,Controls, VSS_Service, TFS_Build_WebApi, TFS_Build_Contract,TFS_Wit_WebApi) {
                     var client = VSS_Service.VssConnection.getConnection()
                             .getHttpClient(TFS_Build_WebApi.BuildHttpClient, WebApi_Constants.ServiceInstanceTypes.TFS);
                      var buildClient = VSS_Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
                      var config = VSS.getConfiguration();
-                     var projId =config.project;
+                     var project = VSS.getWebContext().project
+                     var projId =project.id;
+                    
                      buildClient.getDefinitions(projId,build.buildDefinition).then(function(buildDefs) {
+                        if(buildDefs.length==0) {
+                            console.log("No build definitions found for name:"+build.buildDefinition);
+                            ctrl.ErrorMsg = `Build definition '${build.buildDefinition}'  not found <br/>`
+                            $scope.$apply()
+                            return;
+                        }
                         var bdId = buildDefs[0].id;
                         var qb = {
-                            definition : {id: bdId}
+                            definition : {id: bdId},
+                            parameters : JSON.stringify(build).replace("\"","\\\"")
                         }
-                        buildClient.queueBuild(qb,projId,true).then(function(build) {
-                            ctrl.wiContent = "Build started <br/>" + JSON.stringify(build,null,4)
-                             $scope.$apply();
-                        })
-                     })
-                });
+                        buildClient.queueBuild(qb,projId,true).then(function(outbuild) {
+                            var buildId = outbuild.id
+                            var buildName =outbuild.definition.name;
+                            ctrl.wiContent = `Build started <br/> name: ${buildName} <br/> id: ${buildId}`
+                            $scope.$apply()
+                        },function(error) {ErrorMsg=error.message;console.log("client error3:");console.log(error);$scope.$apply()})
+                     },function(error) {ErrorMsg=error.message;console.log("client error2:");console.log(error);$scope.$apply()})
+                },function(error) {ErrorMsg=error.message;console.log("client error:");console.log(error);$scope.$apply()})
             }
 
             this.deployWorkItem =function (event,data) {
@@ -121,18 +140,21 @@ Array.prototype.unique = function () {
             VSS.ready(function () {
                 ctrl.BuildsService = $injector.get("BuildsConfigurationService");
 
-                VSS.require(["VSS/WebApi/Constants", "VSS/Service", "TFS/TestManagement/RestClient", "VSS/Utils/Date", "VSS/Utils/String", "TFS/WorkItemTracking/RestClient", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/Contracts"],
-                    function (WebApi_Constants, Service, RestClient, UtilsDate, UtilsString, TFS_Wit_WebApi, _TFS_Wit_Contract, _TestContracts) {
+                VSS.require(["VSS/WebApi/Constants", "VSS/Service", "TFS/TestManagement/RestClient", "VSS/Utils/Date", "VSS/Utils/String", "TFS/WorkItemTracking/RestClient", 
+                             "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/Contracts","TFS/Build/RestClient","TFS/Build/Contracts"],
+                    function (WebApi_Constants, Service, RestClient, UtilsDate, UtilsString, TFS_Wit_WebApi, _TFS_Wit_Contract, _TestContracts,TFS_Build_WebApi,TFS_Build_Contract) {
                         TFS_Wit_Contract = _TFS_Wit_Contract;
                         TestContracts = _TestContracts;
                         Utils_Date = UtilsDate;
                         Utils_String = UtilsString;
-
                         // Get an instance of the client
                         var client = Service.VssConnection.getConnection()
                             .getHttpClient(RestClient.TestHttpClient, WebApi_Constants.ServiceInstanceTypes.TFS);
                         var witClient = Service.getCollectionClient(TFS_Wit_WebApi.WorkItemTrackingHttpClient);
                         var config = VSS.getConfiguration();
+                        ctrl.VssService = Service;
+                        ctrl.BuildClient = Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
+
                         witClient.getWorkItem(config.properties.workItemId,null,null,"All").then(function (workItem) {
                             console.log("workItem")
                             console.log(workItem)
@@ -168,12 +190,12 @@ Array.prototype.unique = function () {
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
                                     },function(error) {
-                                        currentError = error;
+                                        ErrorMsg = error.message;
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
                                     })
                                 },function(error) {
-                                        currentError = error;
+                                        ErrorMsg = error.message;
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
                                 })
@@ -238,10 +260,10 @@ Array.prototype.unique = function () {
                     {{line}}
                 </li>
             </ul>
-            <div>
+            <div class="message-area-control">
                 {{ctrl.wiContent}}
             </div>
-        </div>
+        </div>            
         <div id="footer" style="width:100%;text-align:right;height:20px;">
             <hr/>
             <div id="buttonsPlaceHolder" style="display:none">

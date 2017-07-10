@@ -3,7 +3,7 @@ try { angular.module("ExecActions.services") } catch (err) { angular.module('Exe
 
 angular.module("ExecActions.services").service("BuildsConfigurationService", function () {
     this.Builds = {
-        Tibco: {
+        "TIBCO BPM": {
             "User Story": {
                 type: "jenkins",
                 url: "url1",
@@ -14,27 +14,28 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
                 url: "url1",
             }
         },
-        Sugar: {
+        SugarCRM: {
             "User Story": {
-                type: "tfs",
-                buildDefinition: "Sugar_CD",
+                type: "jenkins",
                 url: "url1",
                 rollbackurl: "url1",
             },
             Task: {
                 type: "tfs",
-                buildDefinition: "Sugar_CD",
+                buildDefinition: "SugarCRM_CD",
                 url: "url1",
             }
         }
     }
     this.USBuilds = {
         install : {
-            type: "tfs",
+            type: "jenkins",
+            url: "url1",
             buildDefinition: "US_InstallCD"
         },
         rollback : {
-            type: "tfs",
+            type: "jenkins",
+            url: "url1",
             buildDefinition: "US_RevertCD"
         }
     }

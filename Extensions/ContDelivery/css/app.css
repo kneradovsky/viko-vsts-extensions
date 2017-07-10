@@ -1,0 +1,141 @@
+﻿
+   .invisibleBorder
+        {
+        border:0px:
+       /* border-collapse:separate;*/
+    }
+
+    .tableRow
+    {
+       display:table-row;
+    }
+    
+    .tableHeaderRow
+    {
+       display:table-row;
+       width:auto;
+    }
+
+    .tableCell
+    {
+        display:table-cell;
+        vertical-align: top; 
+    }
+
+    li.selected {
+        background-color: #DCEBFC;
+        border: 1px solid #B8D6FB;
+        border: 1px dashed #000 !important;font-weight:bold !important;
+    }
+
+    ul
+    {
+        padding-left:12px;
+        list-style-type: none;
+    }
+
+
+
+input.ng-invalid{
+    border: 1px solid red; 
+}
+input:required {
+  background-color: lightyellow;
+}
+
+select:required {
+  background-color: lightyellow;
+}
+
+
+.message-area-control
+{
+    position: relative;
+    padding: 5px;
+    word-wrap: break-word;
+	white-space: pre-line;
+}
+
+.message-area-control .clickable
+{
+    cursor: pointer;
+}
+
+.message-area-control.error-message
+{
+    background-color: #e6b9b9;
+    border: 1px solid #C00000;
+}
+
+.message-area-control.warning-message
+{
+    background-color: #ffffcc;
+    border: 1px solid #D56B01;
+}
+
+.message-area-control.info-message
+{
+    background-color: #dce6f4;
+    border: 1px solid #007acc;
+}
+
+.message-area-control .message-icon
+{
+    float: left;
+    margin-right: 5px;
+}
+
+.message-area-control .message-icon .icon
+{
+    vertical-align: top;
+}
+
+.message-area-control.closeable .message-header
+{
+    margin-right: 16px;
+}
+
+.message-area-control .show-details-action
+{    
+    padding-left: 4px;
+    text-transform: none;
+}
+
+.message-area-control a
+{
+    color: #1616EF;
+}
+
+.message-area-control .close-action
+{
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: none;
+}
+
+.message-area-control.closeable .close-action
+{
+    display: block;
+}
+
+#promoMsg-close:hover{
+   cursor:pointer; 
+}
+
+@media screen {
+    #previewHTML {
+        flex: 1;
+        width: 100%;
+        overflow: auto;
+    }
+}
+@media print {
+    #previewHTML {
+        overflow:visible;
+        display:inline;
+        page-break-inside:auto;
+  
+    }
+}
