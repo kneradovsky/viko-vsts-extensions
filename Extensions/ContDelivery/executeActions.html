@@ -2,7 +2,7 @@
 <html style="background-color:inherit;height:100%;" ng-app="ExecActions">
 
 <head>
-    <title>Enhanced Export</title>
+    <title>Continious delivery actions</title>
     <link rel="stylesheet" href="css/app.css" />
 
 
@@ -35,9 +35,6 @@ Array.prototype.unique = function () {
             usePlatformStyles: true
         });
         var app = angular.module('ExecActions', ['ExecActions.services']);
-        app.filter('hideEmptyContent',function() {
-            return function(input) {return input == "" ? "hidden" : "visible"}
-        })
         app.controller("ActionsController", ['$scope', '$http', '$injector', '$interval', function ($scope, $http, $injector, $interval) {
             this.AdminUrl = "";
             this.Templates = [];
@@ -139,7 +136,7 @@ Array.prototype.unique = function () {
 
             VSS.ready(function () {
                 ctrl.BuildsService = $injector.get("BuildsConfigurationService");
-
+                ctrl.BuildsService.init().then(function() {
                 VSS.require(["VSS/WebApi/Constants", "VSS/Service", "TFS/TestManagement/RestClient", "VSS/Utils/Date", "VSS/Utils/String", "TFS/WorkItemTracking/RestClient", 
                              "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/Contracts","TFS/Build/RestClient","TFS/Build/Contracts"],
                     function (WebApi_Constants, Service, RestClient, UtilsDate, UtilsString, TFS_Wit_WebApi, _TFS_Wit_Contract, _TestContracts,TFS_Build_WebApi,TFS_Build_Contract) {
@@ -203,6 +200,7 @@ Array.prototype.unique = function () {
                             }
                         });
                     });
+                })                    
             });
             this.StartLoading = function (longRunning, message) {
                 $("body").css("cursor", "progress");
