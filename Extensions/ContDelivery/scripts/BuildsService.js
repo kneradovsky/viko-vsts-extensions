@@ -8,13 +8,13 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
     this.Doc = {}
 
     this.execute = function (progressCallback) {
-        var deffered = $.Deferred();
+        var deferred = $.Deferred();
         var srv = this;
         srv.progressCallback = progressCallback;
     }
 
     this.init = function (configutation) {
-        var deffered = $.Deferred();
+        var deferred = $.Deferred();
        var service = this;
         VSS.ready(function () {
             // Get the data service
@@ -22,10 +22,10 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
                 service.dataService = dataService;
                 service.loadOptions().then(function() {
                     deferred.resolve();
-                })
+                },function(error) {deferred.reject(error)})
             });
         })
-       return deffered.promise()
+       return deferred.promise()
     };
 
     this.fetchPermissions = function () {
@@ -53,39 +53,70 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
 
     this.getCollectionUrl = function(context,serviceName) {
         var root= "";
-        if(vsoContext!=null){
-            root=vsoContext.project.id + '-' ;
+        if(serviceName==null) {
+            serviceName="buildService"
+        }
+        if(context!=null){
+            root=context.project.id + '-' ;
         }
         return root + serviceName;
     }
 
     this.loadOptions = function() {
-        var deffered = $.Deferred();
+        var deferred = $.Deferred();
         var service=this;
         var vsoContext = VSS.getWebContext();
-        this.dataService.getDocument(this.getCollectionUrl(vsoContext),this.docId)
-        .then(function(indoc) {
-            service.Builds = doc.Task
-            service.USBuilds = doc.UserStory
-            deferred.resolve()
-        },function(error) {deferred.reject(error)})
+        try {
+            this.dataService.getDocument(this.getCollectionUrl(vsoContext),this.docId)
+            .then(function(indoc) {
+                service.Builds = indoc.Task
+                service.USBuilds = indoc.UserStory
+                deferred.resolve()
+            },function(error) {deferred.reject(error)})
+        } catch(error) {deferred.reject(error)}
+        return deferred.promise();
+    }
+
+    this.saveDocument = function(url,document) {
+        var deferred = $.Deferred();
+        var service = this;
+        this.dataService.setDocument(url,document)
+        .then(function(doc) {deferred.resolve(doc)},function(error) {deferred.reject(error)})
         return deferred.promise();
     }
 
     this.storeOptions = function(options) {
-        var deffered = $.Deferred();
+        var deferred = $.Deferred();
         this.Builds = JSON.parse(options.Task)
         this.USBuilds = JSON.parse(options.UserStory)
         var vsoContext = VSS.getWebContext();
         var service = this;
         var doc = {id:this.docId,Task:this.Builds,UserStory:this.USBuilds}
-        this.dataService.setDocument(this.getCollectionUrl(vsoContext),doc)
-        .then(function() {deferred.resolve()},function(error) {deffered.reject(error)})
+        var docurl = this.getCollectionUrl(vsoContext)
+        try {
+            this.saveDocument(docurl,doc).then(function (indoc) {deferred.resolve(indoc)},
+            function(error) {
+                service.deleteDocument().then(function() {
+                    service.saveDocument(docurl,doc).then(function(indoc) {deferred.resolve(indoc)},function(error) {deferred.reject(error)})
+                },function(error) {deferred.reject(error)})
+            })
+        } catch(error) {deferred.reject(error)}
+        return deferred.promise()
+    }
+
+    this.deleteDocument = function() {
+        var deferred = $.Deferred();
+        var vsoContext = VSS.getWebContext();
+        var service = this;
+        try {
+            this.dataService.deleteDocument(this.getCollectionUrl(vsoContext),this.docId)
+            .then(function() {deferred.resolve()},function(error) {deferred.reject(error)})
+        } catch(error) {deferred.reject(error)}
         return deferred.promise()
     }
 
     this.getBuild = function(system) {
-        return this.Builds[system]["Task"];
+        return this.Builds[system];
     }
     this.getUSBuild = function(type) {
         return this.USBuilds[type]
