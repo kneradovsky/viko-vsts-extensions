@@ -75,6 +75,7 @@ Array.prototype.unique = function () {
                         var build = this.BuildsService.getUserStoryBuild(entry[0],rollback ? "rollback" : "install");
                         if(build==undefined) return;
                         build.url+= "?adapters="+encodeURIComponent(entry[1].join(";"))
+                        build.containerNames = entry[1]
                         builds.push(build)
                     },this)
                     
@@ -94,7 +95,7 @@ Array.prototype.unique = function () {
                 }
                 this.wiContent=''
                 builds.forEach(function(build) {
-                    var buildParams = {taskId:workItem.id,containers: ctrl.containerNames}
+                    var buildParams = {taskId:workItem.id,containerNames: build.containerNames}
                     var buildHeaders = {"Authorization":"Basic "+build.token}
                     if(build.type=='tfs') {
                         build.buildParams =buildParams;
