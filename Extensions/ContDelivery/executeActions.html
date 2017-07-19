@@ -40,6 +40,7 @@ Array.prototype.unique = function () {
             this.Templates = [];
             this.cdReportLines = [];
             this.containerNames = [];
+            this.containers = {}
             this.selectedTemplate = null;
             this.isCancelled = false;
             this.ErrorMsg = "";
@@ -66,29 +67,53 @@ Array.prototype.unique = function () {
             this.startBuilds = function(workItem, rollback) {
                 ctrl=this;
                 if(rollback===undefined) rollback=false;
-                var build = undefined;
+                var builds = [];
                 var wiType =workItem.fields["System.WorkItemType"]
-                if(wiType=="User Story") build = this.BuildsService.getUSBuild(rollback ? "rollback" : "install")
+
+                if(wiType=="User Story") {
+                    Object.entries(this.containers).forEach(function(entry) { // [system,[containers]]
+                        var build = this.BuildsService.getUserStoryBuild(entry[0],rollback ? "rollback" : "install");
+                        if(build==undefined) return;
+                        build.url+= "?adapters="+encodeURIComponent(entry[1].join(";"))
+                        builds.push(build)
+                    },this)
+                    
+                }
                 else {
                     var wiSystem = workItem.fields["Logrocon.System"]
                     var systemInCD = this.BuildsService.isSystemInCD(wiSystem);
-                    if(systemInCD) 
-                        build = this.BuildsService.getBuild(wiSystem,wiType);
-                }
-                if(build!=undefined) {
-                    var buildParams = {taskId:workItem.id,containers: this.containerNames}
-                    this.wiContent = JSON.stringify(build,null,4);
-                    if(build.type=='tfs') {
-                        build.buildParams =buildParams;
-                        this.processBuild(build);
-                    } else {
-                        $.post(build.url,buildParams,null,'json')
-                            .fail(function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()});
-                        this.wiContent = 'build started on jenkins - '+build.url
-                        this.wiContent += '\n Parameters:' + JSON.stringify(buildParams,null,4)
+                    if(systemInCD) {
+                        var build = this.BuildsService.getTaskBuild(wiSystem,wiType)
+                        build.url += "?workItemId="+workItem.id;
+                        builds.push(build);
                     }
                 }
-                else this.wiContent = "System "+wiSystem+ " is not in the continious delivery process"
+                if(builds.length==0) {
+                    this.wiContent = "No builds found for that "+wiType
+                    return
+                }
+                this.wiContent=''
+                builds.forEach(function(build) {
+                    var buildParams = {taskId:workItem.id,containers: ctrl.containerNames}
+                    var buildHeaders = {"Authorization":"Basic "+build.token}
+                    if(build.type=='tfs') {
+                        build.buildParams =buildParams;
+                        ctrl.processBuild(build);
+                        ctrl.cdReportLines.push("build "+build.buildDefinition+" started on TFS")
+                    } else {
+                        $.ajax({
+                            type: "POST",
+                            url : build.url,
+                            headers: build.headers,
+                            data: buildParams,
+                            fail: function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()},
+                            dataType: 'json'
+                        })
+                        var logLine = 'build started on jenkins - '+build.url
+                        logLine += ', Parameters:' + JSON.stringify(buildParams)
+                        ctrl.cdReportLines.push(logLine)
+                    }
+                })
             }
 
             this.processBuild = function(build) {
@@ -180,9 +205,17 @@ Array.prototype.unique = function () {
                                     containerLinkIds = containerLinkIds.unique();
                                     witClient.getWorkItems(containerLinkIds,undefined,null,"All")
                                     .then(function(reltaskList) {
-                                        ctrl.containerNames =reltaskList.filter(function(rt) {
+                                        var containerTasks = reltaskList.filter(function(rt) {
                                             return rt.fields['System.Title'].startsWith("container")
-                                        }).map(function(rt) {return rt.fields['System.Title']})
+                                        });
+                                        //map container names to system names
+                                        ctrl.containers={}
+                                        containerTasks.forEach(function(ct) {
+                                            var sysName = ct.fields['Logrocon.System']
+                                            if(ctrl.containers[sysName]==null) ctrl.containers[sysName]=[]
+                                            ctrl.containers[sysName].push(ct.fields['System.Title'])
+                                        })
+                                        ctrl.containerNames =containerTasks.map(function(rt) {return rt.fields['System.Title']})
                                         
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
@@ -258,8 +291,16 @@ Array.prototype.unique = function () {
                     {{line}}
                 </li>
             </ul>
-            <div class="message-area-control">
+            <div class="message-area-control" ng-show="ctrl.wiContent!=''">
                 {{ctrl.wiContent}}
+            </div>
+            <div class="message-area-control" ng-show="ctrl.cdReportLines.length>0">
+                Started builds: 
+                <ul>
+                    <li ng-repeat="line in ctrl.cdReportLines">
+                        {{line}}
+                    </li>
+                </ul>
             </div>
         </div>            
         <div id="footer" style="width:100%;text-align:right;height:20px;">

@@ -87,13 +87,13 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
 
     this.storeOptions = function(options) {
         var deferred = $.Deferred();
-        this.Builds = JSON.parse(options.Task)
-        this.USBuilds = JSON.parse(options.UserStory)
-        var vsoContext = VSS.getWebContext();
-        var service = this;
-        var doc = {id:this.docId,Task:this.Builds,UserStory:this.USBuilds}
-        var docurl = this.getCollectionUrl(vsoContext)
         try {
+            this.Builds = JSON.parse(options.Task)
+            this.USBuilds = JSON.parse(options.UserStory)
+            var vsoContext = VSS.getWebContext();
+            var service = this;
+            var doc = {id:this.docId,Task:this.Builds,UserStory:this.USBuilds}
+            var docurl = this.getCollectionUrl(vsoContext)
             this.saveDocument(docurl,doc).then(function (indoc) {deferred.resolve(indoc)},
             function(error) {
                 service.deleteDocument().then(function() {
@@ -115,11 +115,13 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
         return deferred.promise()
     }
 
-    this.getBuild = function(system) {
+    this.getTaskBuild = function(system) {
         return this.Builds[system];
     }
-    this.getUSBuild = function(type) {
-        return this.USBuilds[type]
+    this.getUserStoryBuild = function(system,type) {
+        if(this.USBuilds[system]==undefined) return undefined;
+        return this.USBuilds[system][type]
+
     }
 
     this.isSystemInCD = function(system) {
@@ -133,6 +135,51 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
         }
         else {
             return true;
+        }
+    }
+    this.defaultUserStoryOptions = {
+        "TIBCO BPM": {
+            "install": {
+                "type": "jenkins",
+                "url": "url2"
+            },
+            "rollback": {
+                "type": "jenkins",
+                "url": "url2"
+            }
+        },
+        "Открытие Online" : {
+            "install": {
+                "type": "jenkins",
+                "url": "url4"
+            },
+            "rollback": {
+                "type": "jenkins",
+                "url": "url5"
+            }
+        },
+        "SugarCRM": {
+            "install": {
+                "type": "tfs",
+                "buildDefinition": "Sugar_CD",
+                "url": "url3"
+            },
+            "rollback": {
+                "type": "tfs",
+                "buildDefinition": "Sugar_CD",
+                "url": "url3"
+            }
+        }
+    }
+    this.defaultTaskOptions = {
+        "TIBCO BPM": {
+            "type": "jenkins",
+            "url": "url2"
+        },
+        "SugarCRM": {
+            "type": "tfs",
+            "buildDefinition": "Sugar_CD",
+            "url": "url3"
         }
     }
 });
