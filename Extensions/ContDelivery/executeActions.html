@@ -74,9 +74,9 @@ Array.prototype.unique = function () {
                     Object.entries(this.containers).forEach(function(entry) { // [system,[containers]]
                         var build = this.BuildsService.getUserStoryBuild(entry[0],rollback ? "rollback" : "install");
                         if(build==undefined) return;
-                        build.url+= "?adapters="+encodeURIComponent(entry[1].join(";"))
-                        build.containerNames = entry[1]
-                        builds.push(build)
+                        build.containerNames = entry[1].filter(function(cnt) {return $scope.selectedConts[cnt]==true})
+                        build.url+= encodeURIComponent(build.containerNames.join(";"))
+                        if(build.containerNames.length>0) builds.push(build)
                     },this)
                     
                 }
@@ -86,6 +86,7 @@ Array.prototype.unique = function () {
                     if(systemInCD) {
                         var build = this.BuildsService.getTaskBuild(wiSystem,wiType)
                         build.url += "?workItemId="+workItem.id;
+                        build.containerNames=[]
                         builds.push(build);
                     }
                 }
@@ -93,10 +94,14 @@ Array.prototype.unique = function () {
                     this.wiContent = "No builds found for that "+wiType
                     return
                 }
+                var webctx = VSS.getWebContext();
                 this.wiContent=''
                 builds.forEach(function(build) {
-                    var buildParams = {taskId:workItem.id,containerNames: build.containerNames}
-                    var buildHeaders = {"Authorization":"Basic "+build.token}
+                    var buildParams = {taskId:workItem.id,containerNames: build.containerNames, containerNamesStr : encodeURIComponent(build.containerNames.join(';'))}
+                    var buildHeaders = {}
+                    if(build.headers==undefined) build.headers={}
+                    //build.headers['Origin']=webctx.host.uri
+                    if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
                     if(build.type=='tfs') {
                         build.buildParams =buildParams;
                         ctrl.processBuild(build);
@@ -149,7 +154,6 @@ Array.prototype.unique = function () {
                      },function(error) {ErrorMsg=error.message;console.log("client error2:");console.log(error);$scope.$apply()})
                 },function(error) {ErrorMsg=error.message;console.log("client error:");console.log(error);$scope.$apply()})
             }
-
             this.deployWorkItem =function (event,data) {
                 this.startBuilds(this.workItem,false);
                 $("#buttonsPlaceHolder").hide('fast');
@@ -217,7 +221,7 @@ Array.prototype.unique = function () {
                                             ctrl.containers[sysName].push(ct.fields['System.Title'])
                                         })
                                         ctrl.containerNames =containerTasks.map(function(rt) {return rt.fields['System.Title']})
-                                        
+                                        ctrl.containerNames.forEach(function(elem) {$scope.selectedConts[elem]=true})
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
                                     },function(error) {
@@ -281,6 +285,13 @@ Array.prototype.unique = function () {
                     return true;
                 }
             }
+            $scope.selectedConts =[]
+            /*
+            $scope.toggleContainerSelection = function(contName) {
+                var filtered = $scope.selectedConts.filter(function(elem) {return elem!=contName})
+
+            }
+            */
         }]);
     </script>
 
@@ -288,8 +299,9 @@ Array.prototype.unique = function () {
         <div class="message-area-control closeable error-message" style="max-height:80px; overflow-x:hidden; overflow-y:auto;" ng-show="ctrl.ErrorMsg!=''">{{ctrl.ErrorMsg}}</div>
         <div id="mainDiv" style="display:flex; flex-direction:column;height:80%;visibility:visible;">
             <ul>
-                <li ng-repeat="line in ctrl.containerNames">
-                    {{line}}
+                <li ng-repeat="contName in ctrl.containerNames">
+                    <input type="checkbox" name="selectedContainers[]"
+                    ng-model="selectedConts[contName]"/>{{contName}}
                 </li>
             </ul>
             <div class="message-area-control" ng-show="ctrl.wiContent!=''">
