@@ -5,14 +5,10 @@
     <title>Continious delivery actions</title>
     <link rel="stylesheet" href="css/app.css" />
 
-
-    <script src="sdk/scripts/jquery_2.1.4.min.js"></script>
+    <script src="sdk/scripts/jquery_3.2.1.js"></script>
     <script src="sdk/scripts/q.js"></script>
     <script src="sdk/scripts/angular_1.3.14.min.js"></script>
-    <script src="sdk/scripts/jquery_2.1.4.min.js"></script>
-
     <script src="sdk/scripts/VSS.SDK.js"></script>
-
     <script src="scripts/BuildsService.js"></script>
 
 </head>
@@ -112,8 +108,9 @@ Array.prototype.unique = function () {
                             url : build.url,
                             headers: build.headers,
                             data: buildParams,
-                            fail: function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()},
-                            dataType: 'json'
+                            error: function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()},
+                            success: function(data,testStatus,jqXHR) {ctrl.cdReportLines.push("Response: "+testStatus);$scope.$apply()},
+                            dataType: 'html'
                         })
                         var logLine = 'build started on jenkins - '+build.url
                         logLine += ', Parameters:' + JSON.stringify(buildParams)
@@ -211,7 +208,7 @@ Array.prototype.unique = function () {
                                     witClient.getWorkItems(containerLinkIds,undefined,null,"All")
                                     .then(function(reltaskList) {
                                         var containerTasks = reltaskList.filter(function(rt) {
-                                            return rt.fields['System.Title'].startsWith("container")
+                                            return rt.fields['System.WorkItemType']=="Container"
                                         });
                                         //map container names to system names
                                         ctrl.containers={}
