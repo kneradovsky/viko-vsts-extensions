@@ -76,7 +76,9 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     result.testCase.name=build.definition.name + "_"+ [params.jobname,params.operation,params.buildenv].join("_");
     result.automatedTestName=build.definition.name;
     result.automatedTestStorage = build.project.name;
-    result.computerName = build.queue.name;
+    result.computerName = "(undefined)"
+    if(build.queue.name !== undefined)
+        result.computerName = build.queue.name;
     result.comment = build.parameters; 
     result.outcome = bi.BuildResult[build.result]== "succeeded" ? "Passed" : "Failed";
     result.startedDate = build.startTime;
@@ -125,7 +127,7 @@ async function run() : Promise<number>{
         jobsResult.startedDate = jobsResult.createdDate;
         jobsResult.name = "Builds";
         jobsResult.buildConfiguration = Object.create(null);
-        var buildList = strBuildList.split(",").map(e => Number.parseInt(e));
+        var buildList = strBuildList.split(",").map(e => Number.parseInt(e)).filter(bid => !isNaN(bid));
         let bapi = api.getBuildApi();
         //generate .md file for the summary page
         var filepath = path.join(tl.getVariable("Agent.BuildDirectory"),`buildList.md`);
@@ -161,9 +163,9 @@ async function run() : Promise<number>{
 }
 
 
-// tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-// tl.setVariable("queuedBuilds","14755");
-// tl.setVariable("Agent.BuildDirectory","/dev/temp/");
+ //tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+ //tl.setVariable("queuedBuilds","14755");
+ //tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => {switch(r) {
