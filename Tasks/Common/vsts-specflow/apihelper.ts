@@ -75,10 +75,12 @@ export class ApiHelper {
 export class BuildDefFullName {
     path : string;
     name : string;
+    origname: string;
     constructor(bdname : string) {
         let p = path.parse(bdname)
         this.path=p.dir
         this.name=p.name
+        this.origname = bdname
         return this
     };
     matchBuildDefinition(bd : bi.BuildDefinitionReference) : boolean {

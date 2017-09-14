@@ -80,7 +80,7 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     if(build.queue.name !== undefined)
         result.computerName = build.queue.name;
     result.comment = build.parameters; 
-    result.outcome = bi.BuildResult[build.result]== "succeeded" ? "Passed" : "Failed";
+    result.outcome = bi.BuildResult[build.result].toLowerCase().endsWith("succeeded") ? "Passed" : "Failed";
     result.startedDate = build.startTime;
     result.completedDate = new Date();
     result.durationInMs = result.completedDate.getTime()-result.startedDate.getTime(); 
@@ -120,6 +120,7 @@ async function run() : Promise<number>{
     projId = tl.getVariable("System.TeamProjectId");
     let strBuildList = tl.getVariable("queuedBuilds");
     let sleepBetweenIters = Number.parseInt(tl.getInput("sleepBetweenIters"));
+    let twoStateStatus = tl.getBoolInput("twoStateStatus")
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
     console.log(tl.loc("queuedBuilds",strBuildList));
     try {
@@ -149,7 +150,7 @@ async function run() : Promise<number>{
         jobsResult.completedDate = new Date();
         createTestReport(jobsResult,buildResults);
         //1 - passed, 2 - passed with issues, 3 - failed
-        let result = hasFailedBuilds ? 3 : passedTests==totalTests ? 1 : passedTests==0 ? 3 : 2;
+        let result = hasFailedBuilds ? 3 : passedTests==totalTests || (twoStateStatus && passedTests>0) ? 1 : passedTests==0 ? 3 : 2;
         let res = Q.defer<number>();
         res.resolve(result);
         return res.promise;
@@ -163,9 +164,9 @@ async function run() : Promise<number>{
 }
 
 
- //tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
- //tl.setVariable("queuedBuilds","14755");
- //tl.setVariable("Agent.BuildDirectory","/dev/temp/");
+// tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+// tl.setVariable("queuedBuilds","21567");
+// tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => {switch(r) {

@@ -8,11 +8,16 @@
     "author": "kneradovsky",
     "version": {
         "Major": 1,
-        "Minor": 1,
-        "Patch": 5
+        "Minor": 2,
+        "Patch": 8
     },
     "instanceNameFormat": "Starts builds: $(buildList)",
     "groups": [
+        {
+            "name":"advanced",
+            "displayName": "Advanced",
+            "isExpanded" : false
+        }        
     ],
     "inputs": [
         {
@@ -22,6 +27,19 @@
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Comma separated list of the build definition names to start"
+        },
+        {
+            "name": "buildParameters",
+            "type": "multiLine",
+            "label": "Build parameters",
+            "defaultValue": "{}",
+            "required": false,
+            "helpMarkDown": "Specify child build parameters, as JSON Object. sample structure: { buildDefName1 : { parameter1 : value1, parameter2 : value2}, buildDefName2 : { parameter1 : value1, parameter2 : value2}}",
+            "groupName": "advanced",
+            "properties": {
+                "resizable": "true",
+                "rows": "4"
+            }
         }
         
     ],

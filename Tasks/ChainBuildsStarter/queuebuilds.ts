@@ -27,6 +27,13 @@ async function run() {
     let projId = tl.getVariable("System.TeamProjectId");
     let buildList = tl.getInput("buildList").split(",").map(s => s.trim()).map(bdname => new BuildDefFullName(bdname));
     let buildNumbersStr = tl.getVariable("queuedBuilds") || "";
+    var buildParameters = {}
+    try {
+        buildParameters = JSON.parse(tl.getInput("buildParameters"))
+    } catch(jserr) {
+        buildParameters = {}
+        tl.warning("Failed to parse buildParameters, fallback to default value - {}")
+    }
     tl._writeLine(tl.loc("previousBuilds",buildNumbersStr));
     var buildNumbers=[];
     if(buildNumbersStr!="")
@@ -43,6 +50,9 @@ async function run() {
             var build:bi.Build = Object.create(null);
             build.definition=Object.create(null);
             build.definition.id=bDef.id;
+            let fullBuildDefName = buildList.find(e => e.matchBuildDefinition(bDef))            
+            if(fullBuildDefName!=undefined && buildParameters[fullBuildDefName.origname] != undefined) 
+                build.parameters = JSON.stringify(buildParameters[fullBuildDefName.origname]);
             try {
                 build = await bapi.queueBuild(build,projId);
                 console.log(tl.loc("queueBuild",bDef.name));

@@ -109,7 +109,7 @@ target.clean = function () {
 // ex: node make.js build --task ShellScript
 //
 target.build = function() {
-    target.clean();
+    //target.clean();
     ensureTool('tsc', '--version', 'Version 1.8.7');
     ensureTool('npm', '--version', function (output) {
         if (semver.lt(output, '3.0.0')) {

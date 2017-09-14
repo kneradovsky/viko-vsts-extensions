@@ -12,7 +12,10 @@
         "node_modules",
         "Tests",
         "**/*.spec.ts",
-        "Extensions"
+        "Extensions",
+        "assets",
+        "codegen",
+        "_build"
     ]
 
 }

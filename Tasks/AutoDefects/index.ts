@@ -1,4 +1,3 @@
-/// <reference path="../../definitions/restapi.d.ts" />
 
 import tl = require('vsts-task-lib/task');
 import trm = require('vsts-task-lib/toolrunner');

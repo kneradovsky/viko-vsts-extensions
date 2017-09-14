@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 2,
-        "Patch": 0
+        "Patch": 10
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
@@ -18,11 +18,19 @@
         {
             "name": "sleepBetweenIters",
             "type": "string",
-            "label": "Seconds to sleep between queue check",
+            "label": "Seconds to sleep between queue check iterations",
             "defaultValue": 30,
             "required": true,
             "helpMarkDown": "Timespan in seconds to sleep between two sequental checks of the build queue state"
-        }        
+        },
+        {
+            "name": "twoStateResult",
+            "type": "boolean",
+            "label": "Ignore 'Passed with issues' status of the children builds",
+            "defaultValue": false,
+            "required": false,
+            "helpMarkDown": "If flag is on then the status of the main build will ignore child build tests with statuses other than pass/fail while computing its own status"
+        }                
     ],
     "execution": {
         "Node": {
