@@ -4,6 +4,7 @@ import ents = require('html-entities');
 import path = require('path');
 import fs = require('fs');
 
+
 import Q = require("q");
 
 import * as vm from 'vso-node-api';
@@ -13,6 +14,7 @@ import * as bi from 'vso-node-api/interfaces/BuildInterfaces';
 import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
+
 
 let trx = require('node-trx');  
 
@@ -41,11 +43,11 @@ function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
         run.addResult({test: new trx.UnitTest({
                 name: tres.testCase.name,
                 methodName: tres.automatedTestName,
-                methodCodeBase: tres.automatedTestStorage,
+                methodCodeBase: tres.automatedTestStorage === undefined ? "(undefined)" : tres.automatedTestStorage,
                 methodClassName: tres.automatedTestName,
                 description: tres.comment            
             }),
-            computerName: tres.computerName,
+            computerName: tres.computerName === undefined ? "(undefined)" : tres.computerName,
             outcome:tres.outcome,
             duration: new Date(tres.durationInMs).toTimeString(),
             errorMessage: tres.errorMessage,
@@ -87,6 +89,31 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     result.errorMessage = result.stackTrace = "";
     return result;
 }
+/*
+async function readZipEntries(reader:NodeJS.ReadableStream,namesubstr:string) : Promise<any[]> {
+    var res = Q.defer<any[]>()
+    var alldata = []
+    reader.pipe(unzip.Parse())
+    .on('entry',(entry)=> {
+        if(entry.path.startsWith(namesubstr)) {
+            var data = ""
+            entry
+            .on('data', (chunk) => data+=chunk)
+            .on('end', ()=> {
+                try {
+                    var obj = JSON.parse(data);
+                    alldata.push(obj)
+                } catch (e) {tl.debug("testrun parse error")}
+            });
+        } else entry.autodrain()
+    })
+    .on('end',() => {
+        console.log(alldata);
+        res.resolve(alldata);
+    })
+    return res.promise;
+}
+*/
 
 async function processBuilds(buildList: number[]) : Promise<number[]>{
     let bapi = api.getBuildApi();
@@ -101,7 +128,20 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
         //build completed store results
         console.log(tl.loc("processingBuild",build.definition.name));
         if(build.result==bi.BuildResult.Failed || build.result==bi.BuildResult.Canceled) hasFailedBuilds=true;
-        var testRuns = await api.getTestApi().getTestRuns(projId,`vstfs:///Build/Build/${buildId}`);
+        var testRuns = await api.getTestApi().getTestRuns(projId,"vstfs:///Build/Build/"+buildId);
+        /*
+        if(testRuns.length==0) {
+            
+            var artefacts = await bapi.getArtifacts(buildId,projId);
+            //filter artefacts by name - 'testruns'
+            var testrunRefs = artefacts.filter(a => a.name.startsWith('testrun'))
+            for(var trr of testrunRefs) {
+                var arStream = await bapi.getArtifactContentZip(buildId,trr.name,projId);
+                var arTR = await readZipEntries(arStream,"testrun");
+                testRuns = testRuns.concat(arTR);
+            }
+        }
+        */
         for(var testRun of testRuns) {
             console.log(tl.loc("processingRun",testRun.name));
             var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id);

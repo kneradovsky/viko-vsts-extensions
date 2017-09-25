@@ -23,6 +23,7 @@
     "vsts-task-lib": "^0.9",
     "xml2js": "^0.4.17",
     "node-trx": "^0.7",
+    "unzip": "^0.1.11",
     "vsts-specflow": "^1"
   }
 }

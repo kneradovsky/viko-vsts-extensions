@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 2,
-        "Patch": 8
+        "Patch": 12
     },
     "instanceNameFormat": "Starts builds: $(buildList)",
     "groups": [
@@ -17,7 +17,7 @@
             "name":"advanced",
             "displayName": "Advanced",
             "isExpanded" : false
-        }        
+        }     
     ],
     "inputs": [
         {

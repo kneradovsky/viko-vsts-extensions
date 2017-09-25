@@ -18,12 +18,13 @@
   "homepage": "https://github.com/kneradovsky/SpecFlowTFSExtension#readme",
   "dependencies": {
     "html-entities": "^1.2.0",
+    "node-trx": "^0.7",
     "ssl-root-cas": "^1.2",
+    "unzip": "^0.1.11",
     "vso-node-api": "^5.1",
-    "vsts-task-lib": "^0.9",
     "vsts-specflow": "^1",
-    "xml2js": "^0.4.17",
-    "node-trx": "^0.7"
+    "vsts-task-lib": "^0.9",
+    "xml2js": "^0.4.17"
   },
   "devDependencies": {
     "adm-zip": "0.4.7",

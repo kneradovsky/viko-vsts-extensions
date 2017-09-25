@@ -8,8 +8,8 @@
     "author": "kneradovsky",
     "version": {
         "Major": 1,
-        "Minor": 2,
-        "Patch": 10
+        "Minor": 3,
+        "Patch": 0
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
