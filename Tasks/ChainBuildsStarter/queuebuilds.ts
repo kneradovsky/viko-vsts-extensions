@@ -71,7 +71,7 @@ async function run() {
     }
 }
 
-tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
 //tl.setVariable("System.TeamProjectId","53ec0ece-275a-4f05-ba58-adddbcbe5dca");
 //tl.setVariable("Build.BuildId","10511");
 run()
