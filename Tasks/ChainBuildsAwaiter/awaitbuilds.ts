@@ -15,8 +15,17 @@ import * as ci from 'vso-node-api/interfaces/CoreInterfaces';
 import * as ti from 'vso-node-api/interfaces/TestInterfaces';
 import * as wi from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 
+let RPClient = require('reportportal-client');
+
 
 let trx = require('node-trx');  
+
+let RPTestItemTypes = {
+    suite:"SUITE",
+    test: "TEST",
+    step :"STEP"
+}
+
 
 
 var buildList = [];
@@ -31,6 +40,8 @@ var hasFailedBuilds=false;
 let jobsResult:ti.TestRun = Object.create(null);
 let buildResults:ti.TestCaseResult[] = [];
 var testrunIdx=0;
+var rpconnect = null
+var rpTempLaunchId = null;
 
 function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
     var run = new trx.TestRun({name: testRun.name,
@@ -63,9 +74,62 @@ function createTestReport(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) {
     testrunIdx++
 }
 
+async function createReportPortalResults(testRun:ti.TestRun,testResults:ti.TestCaseResult[]) : Promise<number> {
+
+    if(rpconnect==null || rpTempLaunchId == null) {
+        tl.debug("No report portal connection found. Skipping report portal results")
+        return;
+    }
+    let suiteObj = rpconnect.startTestItem({
+        description : testRun.name,
+        name: testRun.name,
+        //start_time: testRun.startedDate.valueOf(),
+        start_time: Date.now().valueOf(),
+        type: RPTestItemTypes.suite
+    },rpTempLaunchId);
+    for(var tres of testResults) {
+        let testObj = rpconnect.startTestItem({
+           description: tres.comment,
+           name :  tres.testCase.name,
+           //start_time : tres.startedDate.valueOf(),
+           start_time: Date.now().valueOf(),
+           type: RPTestItemTypes.test
+        },rpTempLaunchId,suiteObj.tempId);
+        let resOutcome = tres.outcome.toLowerCase()
+        var outcome = "FAILED";
+        if(resOutcome!="passed") {
+            //add log for non-passed items
+            let loglevel = resOutcome=="failed" ? "error" : "info";
+            rpconnect.sendLog(testObj.tempId,{
+                level: loglevel,
+                //time: tres.completedDate.valueOf(),
+                time: Date.now().valueOf(),
+                message : tres.errorMessage+"\n"+tres.stackTrace
+            });
+        } else outcome = "PASSED";
+        rpconnect.finishTestItem(testObj.tempId,{
+            status: outcome,
+            //end_time: tres.completedDate.valueOf()
+            end_time: Date.now().valueOf()
+        })
+    }
+    rpconnect.finishTestItem(suiteObj.tempId,{status: ""});
+    let res = Q.defer<number>();
+    rpconnect.getPromiseFinishAllItems(rpTempLaunchId).then(() => {
+        res.resolve(1)
+    })
+    .catch(err => {
+        tl.warning(err.message);
+        tl.warning(err.stack);
+        res.resolve(-1)
+    })
+    return res.promise;
+}
+
 async function processTestRun(testRun:ti.TestRun) {
     var testResults = await api.getTestApi().getTestResults(projId,testRun.id);
     createTestReport(testRun,testResults);
+    await createReportPortalResults(testRun,testResults);
 }
 
 function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
@@ -89,31 +153,7 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     result.errorMessage = result.stackTrace = "";
     return result;
 }
-/*
-async function readZipEntries(reader:NodeJS.ReadableStream,namesubstr:string) : Promise<any[]> {
-    var res = Q.defer<any[]>()
-    var alldata = []
-    reader.pipe(unzip.Parse())
-    .on('entry',(entry)=> {
-        if(entry.path.startsWith(namesubstr)) {
-            var data = ""
-            entry
-            .on('data', (chunk) => data+=chunk)
-            .on('end', ()=> {
-                try {
-                    var obj = JSON.parse(data);
-                    alldata.push(obj)
-                } catch (e) {tl.debug("testrun parse error")}
-            });
-        } else entry.autodrain()
-    })
-    .on('end',() => {
-        console.log(alldata);
-        res.resolve(alldata);
-    })
-    return res.promise;
-}
-*/
+
 
 async function processBuilds(buildList: number[]) : Promise<number[]>{
     let bapi = api.getBuildApi();
@@ -129,23 +169,10 @@ async function processBuilds(buildList: number[]) : Promise<number[]>{
         console.log(tl.loc("processingBuild",build.definition.name));
         if(build.result==bi.BuildResult.Failed || build.result==bi.BuildResult.Canceled) hasFailedBuilds=true;
         var testRuns = await api.getTestApi().getTestRuns(projId,"vstfs:///Build/Build/"+buildId);
-        /*
-        if(testRuns.length==0) {
-            
-            var artefacts = await bapi.getArtifacts(buildId,projId);
-            //filter artefacts by name - 'testruns'
-            var testrunRefs = artefacts.filter(a => a.name.startsWith('testrun'))
-            for(var trr of testrunRefs) {
-                var arStream = await bapi.getArtifactContentZip(buildId,trr.name,projId);
-                var arTR = await readZipEntries(arStream,"testrun");
-                testRuns = testRuns.concat(arTR);
-            }
-        }
-        */
         for(var testRun of testRuns) {
             console.log(tl.loc("processingRun",testRun.name));
             var testRunDetailed = await api.getTestApi().getTestRunById(projId,testRun.id);
-            processTestRun(testRunDetailed);
+            await processTestRun(testRunDetailed);
             console.log(tl.loc("testRunOutcome",testRun.totalTests,testRun.passedTests));
             passedTests+=testRun.passedTests;
             totalTests+=testRun.totalTests;
@@ -159,11 +186,35 @@ async function run() : Promise<number>{
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     projId = tl.getVariable("System.TeamProjectId");
     let strBuildList = tl.getVariable("queuedBuilds");
+    let selfBuildId = tl.getVariable("Build.BuildId") || "1";
     let sleepBetweenIters = Number.parseInt(tl.getInput("sleepBetweenIters"));
+
     let twoStateStatus = tl.getBoolInput("twoStateStatus")
+    let rpuuid = tl.getInput("rpuuid",false);
+    let rpurl = tl.getInput("rpurl",false);
+    let rpprj = tl.getInput("rpproject",false);
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
     console.log(tl.loc("queuedBuilds",strBuildList));
     try {
+        //try to connect to the report portal 
+        if(rpuuid!="") {
+            rpconnect = new RPClient({token: rpuuid,endpoint : rpurl,project: rpprj, launch: rpprj+selfBuildId});
+            try {
+                let rpconnRes = await rpconnect.checkConnect();
+                if(rpconnRes.full_name!==undefined) {
+                    //start launch
+                    let curdate = Date.now().valueOf();
+                    let lobj = rpconnect.startLaunch({start_time: curdate});
+                    rpTempLaunchId = lobj.tempId;
+                }
+            } catch(rperr) {
+                tl.debug("ReportPortal connect error, the runs will not be reported to the rp");
+                tl.debug(rperr.stack);
+                rpconnect = null;
+            }
+
+        }
+        //
         jobsResult.createdDate = new Date();
         jobsResult.startedDate = jobsResult.createdDate;
         jobsResult.name = "Builds";
@@ -192,27 +243,35 @@ async function run() : Promise<number>{
         //1 - passed, 2 - passed with issues, 3 - failed
         let result = hasFailedBuilds ? 3 : passedTests==totalTests || (twoStateStatus && passedTests>0) ? 1 : passedTests==0 ? 3 : 2;
         let res = Q.defer<number>();
-        res.resolve(result);
+        //finish test launch
+        if(rpconnect!=null) 
+        rpconnect.getPromiseFinishAllItems(rpTempLaunchId).then(()=> {
+            rpconnect.finishLaunch(rpTempLaunchId)
+            res.resolve(result);
+        })
+        else res.resolve(result);
         return res.promise;
     } catch (err) {
         console.log(err);
         tl.debug(err.stack);
         throw err;        
     }
-
-
 }
 
 
 // tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-// tl.setVariable("queuedBuilds","21567");
+// tl.setVariable("queuedBuilds","20545");//20545
 // tl.setVariable("Agent.BuildDirectory","/dev/temp/");
 
 run()
 .then(r => {switch(r) {
-    case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;
-    case 2: tl._writeLine("##vso[task.complete result=SucceededWithIssues;]");break;
-    case 3: 
-    default: tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed"));
-}})
-.catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed")))
+        case 1: tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded"));break;
+        case 2: tl._writeLine("##vso[task.complete result=SucceededWithIssues;]");break;
+        case 3: 
+        default: tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed"));
+    }  
+})
+.catch(r => {
+    tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed"))
+})
+

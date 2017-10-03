@@ -24,6 +24,7 @@
     "xml2js": "^0.4.17",
     "node-trx": "^0.7",
     "unzip": "^0.1.11",
-    "vsts-specflow": "^1"
+    "vsts-specflow": "^1",
+    "reportportal-client": "^5.1.0"
   }
 }

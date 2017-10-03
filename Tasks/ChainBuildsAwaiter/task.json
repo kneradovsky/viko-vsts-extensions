@@ -9,10 +9,15 @@
     "version": {
         "Major": 1,
         "Minor": 3,
-        "Patch": 0
+        "Patch": 3
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
+        {
+            "name":"reportportal",
+            "displayName": "Report Portal",
+            "isExpanded" : false
+        }             
     ],
     "inputs": [
         {
@@ -30,7 +35,36 @@
             "defaultValue": false,
             "required": false,
             "helpMarkDown": "If flag is on then the status of the main build will ignore child build tests with statuses other than pass/fail while computing its own status"
+        },
+        {
+            "name": "rpuuid",
+            "type": "string",
+            "label": "User access token",
+            "defaultValue": "",
+            "required": false,
+            "groupname": "reportportal",
+            "helpMarkDown": "User access token to connect to the Report Portal endpoint"
+        },
+        {
+            "name": "rpurl",
+            "type": "string",
+            "label": "Report portal endpoint",
+            "defaultValue": "",
+            "required": false,
+            "groupname": "reportportal",
+            "helpMarkDown": "The url of the report portal endpoint"
+        },
+        {
+            "name": "rpproject",
+            "type": "string",
+            "label": "Report portal project",
+            "defaultValue": "",
+            "groupname": "reportportal",
+            "required": false,
+            "helpMarkDown": "The name of the report portal project to publish test results to"
         }                
+        
+        
     ],
     "execution": {
         "Node": {

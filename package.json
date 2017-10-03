@@ -19,6 +19,7 @@
   "dependencies": {
     "html-entities": "^1.2.0",
     "node-trx": "^0.7",
+    "reportportal-client": "^5.1.0",
     "ssl-root-cas": "^1.2",
     "unzip": "^0.1.11",
     "vso-node-api": "^5.1",
