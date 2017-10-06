@@ -31,7 +31,7 @@
         {
             "name": "twoStateResult",
             "type": "boolean",
-            "label": "Child build passed if any its tests passed",
+            "label": "Two-state result",
             "defaultValue": false,
             "required": false,
             "groupName" : "advanced",
