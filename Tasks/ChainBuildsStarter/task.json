@@ -8,8 +8,8 @@
     "author": "kneradovsky",
     "version": {
         "Major": 1,
-        "Minor": 2,
-        "Patch": 14
+        "Minor": 3,
+        "Patch": 1
     },
     "instanceNameFormat": "Starts builds: $(buildList)",
     "groups": [

@@ -9,10 +9,15 @@
     "version": {
         "Major": 1,
         "Minor": 3,
-        "Patch": 0
+        "Patch": 3
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
+        {
+            "name":"advanced",
+            "displayName": "Advanced",
+            "isExpanded" : false
+        }             
     ],
     "inputs": [
         {
@@ -26,9 +31,10 @@
         {
             "name": "twoStateResult",
             "type": "boolean",
-            "label": "Ignore 'Passed with issues' status of the children builds",
+            "label": "Child build passed if any its tests passed",
             "defaultValue": false,
             "required": false,
+            "groupName" : "advanced",
             "helpMarkDown": "If flag is on then the status of the main build will ignore child build tests with statuses other than pass/fail while computing its own status"
         }                
     ],
