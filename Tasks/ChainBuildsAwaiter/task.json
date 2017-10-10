@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 3,
-        "Patch": 3
+        "Patch": 4
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
@@ -29,7 +29,7 @@
             "helpMarkDown": "Timespan in seconds to sleep between two sequental checks of the build queue state"
         },
         {
-            "name": "twoStateResult",
+            "name": "twoStateStatus",
             "type": "boolean",
             "label": "Two-state result",
             "defaultValue": false,
