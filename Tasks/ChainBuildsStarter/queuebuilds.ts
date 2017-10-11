@@ -21,7 +21,6 @@ var buildDefinitions = [];
 var apihelper = new ApiHelper();
 let api = apihelper.getApi();
 
-
 async function run() {
     tl.setResourcePath(path.join(__dirname, 'task.json'));
     let projId = tl.getVariable("System.TeamProjectId");
@@ -51,12 +50,19 @@ async function run() {
             build.definition=Object.create(null);
             build.definition.id=bDef.id;
             let fullBuildDefName = buildList.find(e => e.matchBuildDefinition(bDef))            
-            if(fullBuildDefName!=undefined && buildParameters[fullBuildDefName.origname] != undefined) 
-                build.parameters = JSON.stringify(buildParameters[fullBuildDefName.origname]);
+            var buildInputParameters = [{}]
+            if(fullBuildDefName!=undefined && buildParameters[fullBuildDefName.origname] != undefined)
+                buildInputParameters = buildParameters[fullBuildDefName.origname];
             try {
-                build = await bapi.queueBuild(build,projId);
-                console.log(tl.loc("queueBuild",bDef.name));
-                buildNumbers.push(build.id);
+                //convert object parameters to 
+                if(!Array.isArray(buildInputParameters)) 
+                    buildInputParameters=[buildInputParameters]
+                for(var bparam of buildInputParameters) {
+                    build.parameters = JSON.stringify(bparam);
+                    let qbuild = await bapi.queueBuild(build,projId);
+                    console.log(tl.loc("queueBuild",bDef.name));
+                    buildNumbers.push(qbuild.id);
+                }
             } catch(err) {
                 tl._writeError(tl.loc("buildQueueFailed",bDef.name));
             }
@@ -71,9 +77,9 @@ async function run() {
     }
 }
 
-//tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
-//tl.setVariable("System.TeamProjectId","53ec0ece-275a-4f05-ba58-adddbcbe5dca");
-//tl.setVariable("Build.BuildId","10511");
+tl.setVariable("System.TeamProjectId","40e8bc90-32fa-48f4-b43a-446f8ec3f084");
+tl.setVariable("Build.BuildId","10511");
+
 run()
 .then(r => tl.setResult(tl.TaskResult.Succeeded,tl.loc("taskSucceeded")))
 .catch(r => tl.setResult(tl.TaskResult.Failed,tl.loc("taskFailed")))
