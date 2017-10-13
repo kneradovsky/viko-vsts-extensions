@@ -190,6 +190,7 @@ async function run() : Promise<number>{
         jobsResult.completedDate = new Date();
         createTestReport(jobsResult,buildResults);
         //1 - passed, 2 - passed with issues, 3 - failed
+        tl.debug(`Result variables, hasFailedBuilds=${hasFailedBuilds}, passedTests=${passedTests}, totalTests=${totalTests}, twoStateStatus=${twoStateStatus}`);
         let result = hasFailedBuilds ? 3 : passedTests==totalTests || (twoStateStatus && passedTests>0) ? 1 : passedTests==0 ? 3 : 2;
         let res = Q.defer<number>();
         res.resolve(result);
