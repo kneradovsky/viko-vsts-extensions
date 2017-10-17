@@ -28,6 +28,27 @@ If you want to parameterize any of your child builds you can specify the builds 
 ``` 
 The _parameters_ are build variables of a child build referred by _build definition name_. 
 
+If you want to start same build definition several time with different parameters set you can specify an array of parameters for that build definition.  
+```json
+{
+    "BuildDefinition1" : [
+        {
+            "Parameter1" : "Value1",
+            "Parameter2" : "Value2",
+        },
+        {
+            "Parameter1" : "Value3",
+            "Parameter2" : "Value4",
+        }
+    ],
+    "Build Definition Name 2" : {
+        "Param1" : "Val1",
+        "Param2" : "Val2",
+    }
+}
+``` 
+The above will start __BuildDefinition1__ two times - first with "Parameter1=Value1","Parameter2=Value2" and second with "Parameter1=Value3","Parameter2=Value4"
+
 ### Chain Builds Awaiter. 
 The task awaits all build to finish. Once a build is finished its test runs results (if any) are published to the current build with the same name. 
 It adds the links to the original builds to the current build summary page. It also creates "synthetic" test run called "Builds" that represents original builds as tests. 
