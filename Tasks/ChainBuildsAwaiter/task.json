@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 3,
-        "Patch": 4
+        "Patch": 7
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [

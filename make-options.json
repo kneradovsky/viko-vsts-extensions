@@ -1,6 +1,5 @@
 {
     "tasks": [
-        "AutoDefects",
         "ChainBuildsAwaiter",
         "ChainBuildsStarter"
     ],
