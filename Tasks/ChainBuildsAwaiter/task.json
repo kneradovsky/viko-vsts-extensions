@@ -62,7 +62,17 @@
             "groupname": "reportportal",
             "required": false,
             "helpMarkDown": "The name of the report portal project to publish test results to"
-        }                
+        },
+        {
+            "name": "rplaunch",
+            "type": "string",
+            "label": "Launch name",
+            "defaultValue": "",
+            "groupname": "reportportal",
+            "required": false,
+            "helpMarkDown": "The name of the launch to record results"
+        },
+                        
         
         
     ],
