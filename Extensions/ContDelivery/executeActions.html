@@ -37,6 +37,7 @@ Array.prototype.unique = function () {
             this.cdReportLines = [];
             this.containerNames = [];
             this.containers = {}
+            this.containerUserStories = {}
             this.selectedTemplate = null;
             this.isCancelled = false;
             this.ErrorMsg = "";
@@ -219,24 +220,49 @@ Array.prototype.unique = function () {
                                         })
                                         ctrl.containerNames =containerTasks.map(function(rt) {return rt.fields['System.Title']})
                                         ctrl.containerNames.forEach(function(elem) {$scope.selectedConts[elem]=true})
+                                        ctrl.findContainersUserStory(witClient,containerTasks);
                                         VSS.notifyLoadSucceeded();
                                         $scope.$apply();
-                                    },function(error) {
-                                        ErrorMsg = error.message;
-                                        VSS.notifyLoadSucceeded();
-                                        $scope.$apply();
-                                    })
-                                },function(error) {
-                                        ErrorMsg = error.message;
-                                        VSS.notifyLoadSucceeded();
-                                        $scope.$apply();
-                                })
+                                    },ctrl.reportError)
+                                },ctrl.reportError)
                                 $("#buttonsPlaceHolder").show('fast');
                             }
                         });
                     });
                 })                    
             });
+
+            this.reportError = function(error) {
+                this.ErrorMsg = error.message;
+                VSS.notifyLoadSucceeded();
+                $scope.$apply();
+            }
+
+            this.findContainersUserStory = function(witClient,containers) {
+                //find tasks
+                var ctrl = this;
+                ctrl.containerUserStories = {}
+                containers.forEach(function(container) {
+                    var contTasks = container.relations.filter(function(link) {return link.rel == 'Microsoft.VSTS.TestCase.SharedParameterReferencedBy-Reverse'})
+                                    .map(function(link) { return link.url.split("/").pop() })
+                                    .map(function(strid) {return Number.parseInt(strid)})
+                                    .unique();
+                    witClient.getWorkItems(contTasks,undefined, null, "All").then(function(tasks) {
+                    var userStoryIds = []
+                    tasks.forEach(function(task){
+                        var taskUs = task.relations.filter(function(link) {return link.rel == 'System.LinkTypes.Hierarchy-Reverse'})
+                                    .map(function(link) { return link.url.split("/").pop() })
+                                    .map(function(strid) {return Number.parseInt(strid)})
+                                    .unique();
+                            witClient.getWorkItems(taskUs,undefined, null, "All").then(function(userstories) {
+                                ctrl.containerUserStories[container.fields['System.Title']]=userstories
+                                $scope.$apply();
+                            },ctrl.reportError)
+                        })                    
+                    },ctrl.reportError)
+                })
+            }
+
             this.StartLoading = function (longRunning, message) {
                 $("body").css("cursor", "progress");
                 if (longRunning) {
@@ -299,6 +325,11 @@ Array.prototype.unique = function () {
                 <li ng-repeat="contName in ctrl.containerNames">
                     <input type="checkbox" name="selectedContainers[]"
                     ng-model="selectedConts[contName]"/>{{contName}}
+                    <div style="position: relative; left: 100px; top: -10px;">
+                        <ul>
+                            <li ng-repeat="userstory in ctrl.containerUserStories[contName]">{{userstory.fields["System.Title"]}}</li>
+                        </ul>
+                    </div>
                 </li>
             </ul>
             <div class="message-area-control" ng-show="ctrl.wiContent!=''">
