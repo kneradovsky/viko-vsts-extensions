@@ -8,7 +8,7 @@ var executeCDActionsProvider = (function () {
                 var extInfo = VSS.getExtensionContext();
                 
                 var dialogOptions = {
-                    title: title || "Properties",
+                    title: title || "Continuous Deployment",
                     width: 600,
                     height: 400,
                     buttons: null

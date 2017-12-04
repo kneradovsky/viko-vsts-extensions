@@ -255,7 +255,11 @@ Array.prototype.unique = function () {
                                     .map(function(strid) {return Number.parseInt(strid)})
                                     .unique();
                             witClient.getWorkItems(taskUs,undefined, null, "All").then(function(userstories) {
-                                ctrl.containerUserStories[container.fields['System.Title']]=userstories
+                                var usarray = ctrl.containerUserStories[container.fields['System.Title']]
+                                if(usarray === undefined) 
+                                    usarray=[];
+                                usarray = usarray.concat(userstories);
+                                ctrl.containerUserStories[container.fields['System.Title']]=usarray;
                                 $scope.$apply();
                             },ctrl.reportError)
                         })                    
@@ -325,7 +329,7 @@ Array.prototype.unique = function () {
                 <li ng-repeat="contName in ctrl.containerNames">
                     <input type="checkbox" name="selectedContainers[]"
                     ng-model="selectedConts[contName]"/>{{contName}}
-                    <div style="position: relative; left: 100px; top: -10px;">
+                    <div style="position: relative; left: 200px; top: -10px;">
                         <ul>
                             <li ng-repeat="userstory in ctrl.containerUserStories[contName]">{{userstory.fields["System.Title"]}}</li>
                         </ul>
