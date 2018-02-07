@@ -121,9 +121,9 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
     this.getTaskBuild = function(system) {
         return this.Builds[system];
     }
-    this.getUserStoryBuild = function(system,type) {
+    this.getUserStoryBuild = function(system,type,destination) {
         if(this.USBuilds[system]==undefined) return undefined;
-        return this.USBuilds[system][type]
+        return this.USBuilds[system][type][destination]
     }
     this.getManagers = function()
     {

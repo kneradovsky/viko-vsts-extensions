@@ -95,7 +95,7 @@ Array.prototype.unique = function () {
                     for (var entry in this.containers)
                     {
                         var obj = this.containers[entry];
-                        var build = this.BuildsService.getUserStoryBuild(entry,rollback ? "rollback" : "install");
+                        var build = this.BuildsService.getUserStoryBuild(entry,rollback ? "rollback" : "install",this.buttonDestinationValue);
                         if(build==undefined) continue;
                         build.containerNames = obj.filter(function(cnt) {return $scope.selectedConts[cnt]==true});
                         build.url+= encodeURIComponent(build.containerNames.join(";"));
