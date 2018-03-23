@@ -59,6 +59,7 @@ Array.prototype.unique = function () {
                 approvedwithcondition: "\u0441\u043E\u0433\u043B\u0430\u0441\u043E\u0432\u0430\u043D\u043E \u0441 \u0443\u0441\u043B\u043E\u0432\u0438\u0435\u043C",//согласовано с условием
                 required: "\u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F",//требуется
             };
+            var WitClient = null;
 
             var ctrl = this;
             this.count = 0;
@@ -108,6 +109,7 @@ Array.prototype.unique = function () {
                     if(systemInCD) {
                         var build = this.BuildsService.getTaskBuild(wiSystem,wiType)
                         build.url += "?workItemId="+workItem.id;
+                        build.system = wiSystem;
                         build.containerNames=[]
                         builds.push(build);
                     }
@@ -125,6 +127,7 @@ Array.prototype.unique = function () {
                     if(build.headers==undefined) build.headers={}
                     //build.headers['Origin']=webctx.host.uri
                     if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
+                    ctrl.logBuild(workItem.id,build);
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
                         ctrl.processBuild(build);
@@ -183,6 +186,18 @@ Array.prototype.unique = function () {
                      },function(error) {ErrorMsg=error.message;console.log("client error2:");console.log(error);$scope.$apply()})
                 },function(error) {ErrorMsg=error.message;console.log("client error:");console.log(error);$scope.$apply()})
             }
+
+            this.logBuild() = function(workItemId,build) {
+                var user = VSS.getWebContext().user;
+                var patchDoc = {
+                    op : "add",
+                    path : "/System.History",
+                    value: `Сборка для ${build.system} была запущена пользователем ${user.name}`
+                }
+                ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
+                .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
+            }
+
             this.deployWorkItem =function (event,data) {
                 this.startBuilds(this.workItem,false);
                 //buttonDestinationValue = undefined;
@@ -292,6 +307,7 @@ Array.prototype.unique = function () {
                         ctrl.tfsContext = _tfsContext;
                         ctrl.VssService = Service;
                         ctrl.BuildClient = Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
+                        ctrl.WitClient = witClient;
 
                         witClient.getWorkItem(config.properties.workItemId,null,null,"All").then(function (workItem) {
                             console.log("workItem")
