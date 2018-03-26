@@ -51,6 +51,7 @@ Array.prototype.unique = function () {
 
             this.containerLinkIds = [];
             this.currentUser = null;
+            this.password = null;
 
             this.russianDictionary = {
                 no: "\u043D\u0435\u0442",//нет
@@ -133,7 +134,8 @@ Array.prototype.unique = function () {
                     //build.headers['Origin']=webctx.host.uri
                     //create token
                     //if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
-                    var tokenStr = this.currentUser.uniqueName+":"+this.password;
+                    var username = ctrl.currentUser.uniqueName.split("\\")[1];
+                    var tokenStr = username+":"+ctrl.password;
                     build.headers["Authorization"]="Basic "+btoa(tokenStr);
                     ctrl.logBuild(workItem.id,build);
                     if(build.type=='tfs') {
@@ -285,7 +287,7 @@ Array.prototype.unique = function () {
                 return approveFor;
             }
 
-            this.checkLinearManager = function(uniqName)
+            this.checkLinearManager = function(workItem)
             {
                 var deferred = $.Deferred();
                 var managerArray = this.BuildsService.getManagers();
@@ -295,31 +297,45 @@ Array.prototype.unique = function () {
                 VSS.require(["TFS/Core/RestClient"], function(_RestClient) {
                     var client = _RestClient.getClient();
                     var tfsContext = ctrl.tfsContext.TfsContext.getDefault();
+                    var wiTeamAreas = workItem.fields["System.AreaPath"].split("\\");
+                    var teamName = wiTeamAreas[wiTeamAreas.length-1];
                     client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
-                        var filteredTeams = teams.filter(function (x) {
-                            for (var i in managerArray)
-                            {
-                                if (x.name == managerArray[i])
-                                    return true;
-                            }
-                        });
+                        var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
+                        var adminTeams = teams.filter(function (t) {return managerArray.indexOf(t.name)!=-1})
 
-                        if (filteredTeams.length == 0)
+                        if (adminTeams.length == 0)
                         {
                             ctrl.isLinearManager = false;
                             deferred.resolve();
-                        }
-                    
-                        for (var fTeam in filteredTeams)
+                            return;
+                        } 
+                        var queleLen =adminTeams.length;
+                        for (var fTeam in adminTeams)
                         {
-                            if (filteredTeams[fTeam] == undefined || fTeam == "unique")
+                            
+                            if (adminTeams[fTeam] == undefined || fTeam == "unique")
                                 continue;
-                            client.getTeamMembers(tfsContext.contextData.project.id, filteredTeams[fTeam].id).then(function (members) {
-                                if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0)
-                                    ctrl.isLinearManager = true;
+                            client.getTeamMembers(tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+                                if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
+                                    //current user is admin. Check if he is the member of the WI team
+                                    client.getTeamMembers(tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
+                                        queleLen--;
+                                        if(tm.filter(function(m) {return m.id==tfsContext.currentIdentity.id}).length>0) {
+                                            ctrl.isLinearManager = true;
+                                        }
+                                    })
+                                }
                             });
                         }
-                        deferred.resolve();
+                        let waitManagersComplete = function() {
+                            if(queleLen==0) deferred.resolve();
+                            else {
+                                console.log("waiting to load all admins");
+                                setTimeout(waitManagersComplete,1000);
+                            }
+                        }
+                        waitManagersComplete();
+                        //deferred.resolve();
                     });
                 });
                 return deferred.promise();
@@ -407,7 +423,7 @@ Array.prototype.unique = function () {
                                     ctrl.approvedDestination = ctrl.checkApproveStates(usWorkItem);
                                     var uniqName = ctrl.tfsContext.TfsContext.getDefault().currentIdentity.uniqueName;
                                     //Check Permissions
-                                    ctrl.checkLinearManager(uniqName).then(function() {
+                                    ctrl.checkLinearManager(usWorkItem).then(function() {
                                         //containerLinkIds = containerLinkIds.unique();
                                         witClient.getWorkItems(Object.keys(ctrl.containerLinkIds),undefined,null,"All")
                                         .then(function(reltaskList) {
@@ -562,7 +578,7 @@ Array.prototype.unique = function () {
                     <span>Username:</span><span>{{ctrl.currentUser.uniqueName}}</span>
                 </div>
                 <div style="display:flex; flex-direction: row;justify-content: space-between">
-                    <span>Password:</span><input type="password" ngmodel="password">
+                    <span>Password:</span><input type="password" ng-model="ctrl.password">
                 </div>
                 <button ng-if="ctrl.wiType=='Task'" ng-click="ctrl.startTaskBuild()">Start build</button>
             </div>
@@ -573,7 +589,7 @@ Array.prototype.unique = function () {
                     <button id="ProdDestination" ng-disabled="!(ctrl.approvedDestination=='Prod' && ctrl.isLinearManager)" ng-click="ctrl.setSystem(null, 'Prod')">Prod</button>
                 </div>
             </ul>
-            <div ng-if="ctrl.wiType=='User Story'" id="containersList" style="overflow:scroll; height: 100%;">
+            <div ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'" id="containersList" style="overflow:scroll; height: 100%;">
                 <ul>
                     <li ng-repeat="contName in ctrl.containerNames">
                         <input type="checkbox" name="selectedContainers[]"
