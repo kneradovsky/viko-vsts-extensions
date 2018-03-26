@@ -5,6 +5,7 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
     this.docId = "7683c39d-da23-4fb2-83dc-2bc5bf2025dc";
     this.Builds = ""
     this.USBuilds = ""
+    this.Managers = ""
     this.Doc = {}
 
     this.execute = function (progressCallback) {
@@ -71,6 +72,7 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
             .then(function(indoc) {
                 service.Builds = indoc.Task
                 service.USBuilds = indoc.UserStory
+                service.Managers = indoc.LinearManagers
                 deferred.resolve()
             },function(error) {deferred.reject(error)})
         } catch(error) {deferred.reject(error)}
@@ -90,9 +92,10 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
         try {
             this.Builds = JSON.parse(options.Task)
             this.USBuilds = JSON.parse(options.UserStory)
+            this.Managers = JSON.parse(options.LinearManagers)
             var vsoContext = VSS.getWebContext();
             var service = this;
-            var doc = {id:this.docId,Task:this.Builds,UserStory:this.USBuilds}
+            var doc = {id:this.docId,Task:this.Builds,UserStory:this.USBuilds,LinearManagers:this.Managers}
             var docurl = this.getCollectionUrl(vsoContext)
             this.saveDocument(docurl,doc).then(function (indoc) {deferred.resolve(indoc)},
             function(error) {
@@ -118,10 +121,14 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
     this.getTaskBuild = function(system) {
         return this.Builds[system];
     }
-    this.getUserStoryBuild = function(system,type) {
+    this.getUserStoryBuild = function(system,type,destination) {
         if(this.USBuilds[system]==undefined) return undefined;
-        return this.USBuilds[system][type]
-
+        return this.USBuilds[system][type][destination]
+    }
+    this.getManagers = function()
+    {
+        if (this.Managers == undefined) return undefined;
+        return this.Managers;
     }
 
     this.isSystemInCD = function(system) {

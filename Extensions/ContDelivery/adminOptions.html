@@ -26,26 +26,41 @@
             this.InfoMsg = "";
             this.TaskOptions = "";
             this.UserStoryOptions = "";
+            this.ManagersOption = "";
             // Wait for the SDK to be initialized
             VSS.ready(function () {
                 ctrl.BuildsService = $injector.get("BuildsConfigurationService");
+                document.getElementById("CDSettings").style.visibility = 'hidden';
                 VSS.require("VSS/Controls", function (controls) {
                 });
                 ctrl.BuildsService.init().then(function() {
                     VSS.notifyLoadSucceeded();
-                    ctrl.Reset()
-                    $scope.$apply()
-                },function(error) {console.log(error);ctrl.ErrorMsg=error.message;VSS.notifyLoadSucceeded();$scope.$apply();})
-            });                        
+                    ctrl.Reset();
+                    $scope.$apply();
+                },function(error) {console.log(error);ctrl.ErrorMsg=error.message;VSS.notifyLoadSucceeded();$scope.$apply();});
+                VSS.require(["Presentation/Scripts/TFS/TFS.Host.TfsContext", "TFS/Core/RestClient"], function(_TfsContext, _RestClient) {
+                    var client = _RestClient.getClient();
+                    var tfsContext = _TfsContext.TfsContext.getDefault();
+                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
+                        var team = teams.filter(function (x) { return x.name == "CDActionAdministrators" })[0];
+                        client.getTeamMembers(tfsContext.contextData.project.id, team.id).then(function (members) {
+                            if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
+                                document.getElementById("CDSettings").style.visibility = 'visible';
+							}
+                        });
+                    });
+                });
+            });
             this.Save = function() {
                 this.hideMessages()
-                this.BuildsService.storeOptions({UserStory:this.UserStoryOptions, Task:this.TaskOptions})
+                this.BuildsService.storeOptions({UserStory:this.UserStoryOptions, Task:this.TaskOptions, LinearManagers:this.ManagersOption})
                 .then(function() {ctrl.InfoMsg="Options Saved";$scope.$apply()},function(error) {console.log(error);ctrl.ErrorMsg=error.message;$scope.$apply()})
             }
             this.Reset = function() {
                 this.hideMessages()
                 this.TaskOptions = JSON.stringify(this.BuildsService.Builds,null,4)
                 this.UserStoryOptions = JSON.stringify(this.BuildsService.USBuilds,null,4)
+                this.ManagersOption = JSON.stringify(this.BuildsService.Managers,null,4)
             }
 
             this.hideMessages = function() {
@@ -56,7 +71,7 @@
         
     </script>
     <div>
-        <div class="hub-view explorer" ng-controller="OptionsController as ctrl">
+        <div id="CDSettings" class="hub-view explorer" ng-controller="OptionsController as ctrl">
             <div class="splitter horizontal hub-splitter">
                 <div class="leftPane">
                     <div class="left-hub-content">
@@ -71,13 +86,17 @@
                         <div style="flex:1;height:80%;overflow:auto">
                             <ng-form name="frmOptions">
                                 <div style="display: table; height:100%;width:100%; border-spacing: 6px; vertical-align:top">
-                                    <div style="display: table-row; height :50%;min-height:100px;">
+                                    <div style="display: table-row; height :45%;min-height:100px;">
                                         <div class="tableCell">Task options:</div>
                                         <div class="tableCell" style="width:100%"><textarea style=" width: 100%; height: 100%; min-height:100px;" ng-model="ctrl.TaskOptions"></textarea></div>
                                     </div>
-                                    <div style="display: table-row; height :50%;min-height:100px;">
+                                    <div style="display: table-row; height :45%;min-height:100px;">
                                         <div class="tableCell">User Story options:</div>
                                         <div class="tableCell" style="width:100%"><textarea style=" width: 100%; height: 100%; min-height:100px;" ng-model="ctrl.UserStoryOptions"></textarea></div>
+                                    </div>
+                                    <div style="display: table-row; height :10%;min-height:100px;">
+                                        <div class="tableCell">Linear managers:</div>
+                                        <div class="tableCell" style="width:100%"><textarea style=" width: 100%; height: 100%; min-height:100px;" ng-model="ctrl.ManagersOption"></textarea></div>
                                     </div>
                             </ng-form>
                         </div>
