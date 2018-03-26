@@ -10,7 +10,7 @@ var executeCDActionsProvider = (function () {
                 var dialogOptions = {
                     title: title || "Continuous Deployment",
                     width: 600,
-                    height: 400,
+                    height: 600,
                     buttons: null
                 };
                 

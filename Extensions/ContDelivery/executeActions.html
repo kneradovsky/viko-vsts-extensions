@@ -48,7 +48,10 @@ Array.prototype.unique = function () {
             this.workItem = null;
             this.approvedDestination = undefined;
             this.buttonDestinationValue = undefined;
+
             this.containerLinkIds = [];
+            this.currentUser = null;
+
             this.russianDictionary = {
                 no: "\u043D\u0435\u0442",//нет
                 yes: "\u0434\u0430",//да
@@ -60,6 +63,7 @@ Array.prototype.unique = function () {
                 approvedwithcondition: "\u0441\u043E\u0433\u043B\u0430\u0441\u043E\u0432\u0430\u043D\u043E \u0441 \u0443\u0441\u043B\u043E\u0432\u0438\u0435\u043C",//согласовано с условием
                 required: "\u0442\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F",//требуется
             };
+            var WitClient = null;
 
             var ctrl = this;
             this.count = 0;
@@ -83,6 +87,7 @@ Array.prototype.unique = function () {
                 if(rollback===undefined) rollback=false;
                 var builds = [];
                 var wiType =workItem.fields["System.WorkItemType"]
+
 
                 if(wiType=="User Story" || wiType=="Bug Prod") {
                     /*Object.entries(this.containers).forEach(function(entry) { // [system,[containers]]
@@ -109,6 +114,7 @@ Array.prototype.unique = function () {
                     if(systemInCD) {
                         var build = this.BuildsService.getTaskBuild(wiSystem,wiType)
                         build.url += "?workItemId="+workItem.id;
+                        build.system = wiSystem;
                         build.containerNames=[]
                         builds.push(build);
                     }
@@ -125,7 +131,11 @@ Array.prototype.unique = function () {
                     var buildHeaders = {}
                     if(build.headers==undefined) build.headers={}
                     //build.headers['Origin']=webctx.host.uri
-                    if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
+                    //create token
+                    //if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
+                    var tokenStr = this.currentUser.uniqueName+":"+this.password;
+                    build.headers["Authorization"]="Basic "+btoa(tokenStr);
+                    ctrl.logBuild(workItem.id,build);
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
                         ctrl.processBuild(build);
@@ -184,6 +194,20 @@ Array.prototype.unique = function () {
                      },function(error) {ErrorMsg=error.message;console.log("client error2:");console.log(error);$scope.$apply()})
                 },function(error) {ErrorMsg=error.message;console.log("client error:");console.log(error);$scope.$apply()})
             }
+            this.startTaskBuild = function() {
+                this.startBuilds(this.workItem);
+            }
+            this.logBuild = function(workItemId,build) {
+                var user = VSS.getWebContext().user;
+                var patchDoc = [{
+                    op : "add",
+                    path : "/fields/System.History",
+                    value: `Build for ${build.system} has been started by ${user.name}`
+                }]
+                ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
+                .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
+            }
+
             this.deployWorkItem =function (event,data) {
                 this.startBuilds(this.workItem,false);
                 //buttonDestinationValue = undefined;
@@ -252,6 +276,7 @@ Array.prototype.unique = function () {
                         && (approveSecurity == ctrl.russianDictionary.approved 
                         || approveSecurity == ctrl.russianDictionary.approvedwithcondition
                         || approveSecurity == ctrl.russianDictionary.notrequired))
+
                         {
                             approveFor = "Prod";//'Prod' System
                         }
@@ -298,6 +323,7 @@ Array.prototype.unique = function () {
                     });
                 });
                 return deferred.promise();
+
             }
 
             VSS.ready(function () {
@@ -318,6 +344,8 @@ Array.prototype.unique = function () {
                         ctrl.tfsContext = _tfsContext;
                         ctrl.VssService = Service;
                         ctrl.BuildClient = Service.getCollectionClient(TFS_Build_WebApi.BuildHttpClient);
+                        ctrl.WitClient = witClient;
+                        ctrl.currentUser = VSS.getWebContext().user;
 
                         witClient.getWorkItem(config.properties.workItemId,null,null,"All").then(function (workItem) {
                             console.log("workItem")
@@ -326,7 +354,7 @@ Array.prototype.unique = function () {
                             ctrl.wiType = workItem.fields["System.WorkItemType"];
                             var usWorkItem = workItem;
                             if(ctrl.wiType=='Task') {
-                                ctrl.startBuilds(workItem);
+                                //ctrl.startBuilds(workItem); //now task started after authorization
                                 VSS.notifyLoadSucceeded();
                                 $scope.$apply();
                             }
@@ -339,6 +367,7 @@ Array.prototype.unique = function () {
                                 ctrl.containerLinkIds = [];
                                 witClient.getWorkItems(linksIds, undefined, null, "All")
                                 .then(function(taskList) {
+
                                     taskList.forEach(function(t) {
                                         /*var approveDevelopment = t.fields["Logrocon.ApproveDevelopment"];
                                         var test = t.fields["Logrocon.ApproveDevelopment"];
@@ -348,6 +377,7 @@ Array.prototype.unique = function () {
                                         var usState = usWorkItem.fields["System.State"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"];*/
 
+
                                         var approve = t.fields["Logrocon.CDCIApprovement"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
 
@@ -355,10 +385,12 @@ Array.prototype.unique = function () {
                                         if (activity && approve != null && approve.toLowerCase() == ctrl.russianDictionary.yes)
                                             taskFlag = true;
                                             
+
                                         var ids = t.relations
                                             .filter(function(link) {return link.rel == 'Microsoft.VSTS.TestCase.SharedParameterReferencedBy-Forward'})
                                             .map(function(link) { return link.url.split("/").pop() })
                                             .map(function(strid) {return parseInt(strid)});
+
 
                                         for (var i in ids)
                                         {
@@ -524,6 +556,16 @@ Array.prototype.unique = function () {
     <div ng-controller="ActionsController as ctrl" style="display:flex; flex-direction:column;height:100%;">
         <div class="message-area-control closeable error-message" style="max-height:80px; overflow-x:hidden; overflow-y:auto;" ng-show="ctrl.ErrorMsg!=''">{{ctrl.ErrorMsg}}</div>
         <div id="mainDiv" style="display:flex; flex-direction:column;height:80%;visibility:visible;">
+
+            <div id="authDiv" style="width:50%;align-self:flex-start">
+                <div style="display:flex; flex-direction: row;justify-content: space-between">
+                    <span>Username:</span><span>{{ctrl.currentUser.uniqueName}}</span>
+                </div>
+                <div style="display:flex; flex-direction: row;justify-content: space-between">
+                    <span>Password:</span><input type="password" ngmodel="password">
+                </div>
+                <button ng-if="ctrl.wiType=='Task'" ng-click="ctrl.startTaskBuild()">Start build</button>
+            </div>
             <ul ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'">
                 <div id="systemButtonsPlaceHolder">
                     <button id="TestDestination" ng-disabled="!(ctrl.approvedDestination=='Test')" ng-click="ctrl.setSystem(null, 'Test')">Test</button>
@@ -531,7 +573,7 @@ Array.prototype.unique = function () {
                     <button id="ProdDestination" ng-disabled="!(ctrl.approvedDestination=='Prod' && ctrl.isLinearManager)" ng-click="ctrl.setSystem(null, 'Prod')">Prod</button>
                 </div>
             </ul>
-            <div id="containersList" style="overflow:scroll; height: 100%;">
+            <div ng-if="ctrl.wiType=='User Story'" id="containersList" style="overflow:scroll; height: 100%;">
                 <ul>
                     <li ng-repeat="contName in ctrl.containerNames">
                         <input type="checkbox" name="selectedContainers[]"
