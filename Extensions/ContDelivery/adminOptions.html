@@ -30,14 +30,27 @@
             // Wait for the SDK to be initialized
             VSS.ready(function () {
                 ctrl.BuildsService = $injector.get("BuildsConfigurationService");
+                document.getElementById("CDSettings").style.visibility = 'hidden';
                 VSS.require("VSS/Controls", function (controls) {
                 });
                 ctrl.BuildsService.init().then(function() {
                     VSS.notifyLoadSucceeded();
-                    ctrl.Reset()
-                    $scope.$apply()
-                },function(error) {console.log(error);ctrl.ErrorMsg=error.message;VSS.notifyLoadSucceeded();$scope.$apply();})
-            });                        
+                    ctrl.Reset();
+                    $scope.$apply();
+                },function(error) {console.log(error);ctrl.ErrorMsg=error.message;VSS.notifyLoadSucceeded();$scope.$apply();});
+                VSS.require(["Presentation/Scripts/TFS/TFS.Host.TfsContext", "TFS/Core/RestClient"], function(_TfsContext, _RestClient) {
+                    var client = _RestClient.getClient();
+                    var tfsContext = _TfsContext.TfsContext.getDefault();
+                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
+                        var team = teams.filter(function (x) { return x.name == "CDActionAdministrators" })[0];
+                        client.getTeamMembers(tfsContext.contextData.project.id, team.id).then(function (members) {
+                            if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
+                                document.getElementById("CDSettings").style.visibility = 'visible';
+							}
+                        });
+                    });
+                });
+            });
             this.Save = function() {
                 this.hideMessages()
                 this.BuildsService.storeOptions({UserStory:this.UserStoryOptions, Task:this.TaskOptions, LinearManagers:this.ManagersOption})
@@ -58,7 +71,7 @@
         
     </script>
     <div>
-        <div class="hub-view explorer" ng-controller="OptionsController as ctrl">
+        <div id="CDSettings" class="hub-view explorer" ng-controller="OptionsController as ctrl">
             <div class="splitter horizontal hub-splitter">
                 <div class="leftPane">
                     <div class="left-hub-content">

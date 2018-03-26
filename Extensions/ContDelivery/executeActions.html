@@ -48,7 +48,10 @@ Array.prototype.unique = function () {
             this.workItem = null;
             this.approvedDestination = undefined;
             this.buttonDestinationValue = undefined;
+
+            this.containerLinkIds = [];
             this.currentUser = null;
+
             this.russianDictionary = {
                 no: "\u043D\u0435\u0442",//нет
                 yes: "\u0434\u0430",//да
@@ -85,7 +88,8 @@ Array.prototype.unique = function () {
                 var builds = [];
                 var wiType =workItem.fields["System.WorkItemType"]
 
-                if(wiType=="User Story") {
+
+                if(wiType=="User Story" || wiType=="Bug Prod") {
                     /*Object.entries(this.containers).forEach(function(entry) { // [system,[containers]]
                         var build = this.BuildsService.getUserStoryBuild(entry[0],rollback ? "rollback" : "install");
                         if(build==undefined) return;
@@ -264,14 +268,15 @@ Array.prototype.unique = function () {
                         approveFor = "Test";//'Test' System
                     } 
                     else if (usState == "ready for release" 
-                    && (approveSecurity == ctrl.russianDictionary.approved 
-                        || approveSecurity == ctrl.russianDictionary.approvedwithcondition
-                        || approveSecurity == ctrl.russianDictionary.notrequired)
                     && approveTesting == ctrl.russianDictionary.yes)
                     {
                         //ctrl.approvedDestination = "PreProd";
                         approveFor = "PreProd";//'PreProd' System
-                        if (approveSupport == ctrl.russianDictionary.yes)
+                        if (approveSupport == ctrl.russianDictionary.yes
+                        && (approveSecurity == ctrl.russianDictionary.approved 
+                        || approveSecurity == ctrl.russianDictionary.approvedwithcondition
+                        || approveSecurity == ctrl.russianDictionary.notrequired))
+
                         {
                             approveFor = "Prod";//'Prod' System
                         }
@@ -282,17 +287,43 @@ Array.prototype.unique = function () {
 
             this.checkLinearManager = function(uniqName)
             {
+                var deferred = $.Deferred();
                 var managerArray = this.BuildsService.getManagers();
                 if (managerArray == null || uniqName == null) return false;
-                var decision = false;
-                managerArray.forEach(function(manager) {
-                    if (manager == uniqName)
-                    {
-                        decision = true;
-                        return;
-                    }
+                ctrl.isLinearManager = false;
+
+                VSS.require(["TFS/Core/RestClient"], function(_RestClient) {
+                    var client = _RestClient.getClient();
+                    var tfsContext = ctrl.tfsContext.TfsContext.getDefault();
+                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
+                        var filteredTeams = teams.filter(function (x) {
+                            for (var i in managerArray)
+                            {
+                                if (x.name == managerArray[i])
+                                    return true;
+                            }
+                        });
+
+                        if (filteredTeams.length == 0)
+                        {
+                            ctrl.isLinearManager = false;
+                            deferred.resolve();
+                        }
+                    
+                        for (var fTeam in filteredTeams)
+                        {
+                            if (filteredTeams[fTeam] == undefined || fTeam == "unique")
+                                continue;
+                            client.getTeamMembers(tfsContext.contextData.project.id, filteredTeams[fTeam].id).then(function (members) {
+                                if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0)
+                                    ctrl.isLinearManager = true;
+                            });
+                        }
+                        deferred.resolve();
+                    });
                 });
-                return decision;
+                return deferred.promise();
+
             }
 
             VSS.ready(function () {
@@ -333,9 +364,10 @@ Array.prototype.unique = function () {
                                                 .map(function(link) { return link.url.split("/").pop() })
                                                 .map(function(strid) {return parseInt(strid)})
                                                 .unique();
+                                ctrl.containerLinkIds = [];
                                 witClient.getWorkItems(linksIds, undefined, null, "All")
                                 .then(function(taskList) {
-                                    var containerLinkIds = [];
+
                                     taskList.forEach(function(t) {
                                         /*var approveDevelopment = t.fields["Logrocon.ApproveDevelopment"];
                                         var test = t.fields["Logrocon.ApproveDevelopment"];
@@ -345,40 +377,72 @@ Array.prototype.unique = function () {
                                         var usState = usWorkItem.fields["System.State"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"];*/
 
+
+                                        var approve = t.fields["Logrocon.CDCIApprovement"];
+                                        var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
+
+                                        var taskFlag = false;
+                                        if (activity && approve != null && approve.toLowerCase() == ctrl.russianDictionary.yes)
+                                            taskFlag = true;
+                                            
+
                                         var ids = t.relations
                                             .filter(function(link) {return link.rel == 'Microsoft.VSTS.TestCase.SharedParameterReferencedBy-Forward'})
                                             .map(function(link) { return link.url.split("/").pop() })
                                             .map(function(strid) {return parseInt(strid)});
-                                        containerLinkIds = containerLinkIds.concat(ids);
+
+
+                                        for (var i in ids)
+                                        {
+                                            var taskId = ids[i];
+                                            if (taskId == undefined || i == "unique")
+                                                continue;
+                                            if (ctrl.containerLinkIds[taskId] == undefined)
+                                                ctrl.containerLinkIds[taskId] = false;
+                                            ctrl.containerLinkIds[taskId] = ctrl.containerLinkIds[taskId] == true ? true : taskFlag;
+                                        }
+                                        //containerLinkIds = containerLinkIds.concat(ids);
                                     });
 
                                     ctrl.approvedDestination = ctrl.checkApproveStates(usWorkItem);
                                     var uniqName = ctrl.tfsContext.TfsContext.getDefault().currentIdentity.uniqueName;
-                                    ctrl.isLinearManager = ctrl.checkLinearManager(uniqName);
                                     //Check Permissions
+                                    ctrl.checkLinearManager(uniqName).then(function() {
+                                        //containerLinkIds = containerLinkIds.unique();
+                                        witClient.getWorkItems(Object.keys(ctrl.containerLinkIds),undefined,null,"All")
+                                        .then(function(reltaskList) {
+                                            var containerTasks = reltaskList.filter(function(rt) {
+                                                return rt.fields['System.WorkItemType']=="Container"
+                                            });
+                                            //map container names to system names
+                                            ctrl.containers={}
+                                            containerTasks.forEach(function(ct) {
+                                                var sysName = ct.fields['Logrocon.System']
+                                                if(ctrl.containers[sysName]==null) ctrl.containers[sysName]=[]
+                                                ctrl.containers[sysName].push(ct.fields['System.Title'])
+                                            })
+                                            //ctrl.containerNames =containerTasks.map(function(rt) {return rt.fields['System.Title']})
 
+                                            for (var i in containerTasks)
+                                            {
+                                                var containerTask = containerTasks[i];
+                                                if (containerTask == undefined || i == "unique")
+                                                    continue;
+                                                var containerId = containerTasks[i].fields['System.Id'];
+                                                var containerTitle = containerTasks[i].fields['System.Title'];
+                                                var containerObject = { "title":containerTitle,
+                                                                        "taskPassed":ctrl.containerLinkIds[containerId] }
+                                                ctrl.containerNames.push(containerObject);
+                                            }
 
-                                    containerLinkIds = containerLinkIds.unique();
-                                    witClient.getWorkItems(containerLinkIds,undefined,null,"All")
-                                    .then(function(reltaskList) {
-                                        var containerTasks = reltaskList.filter(function(rt) {
-                                            return rt.fields['System.WorkItemType']=="Container"
-                                        });
-                                        //map container names to system names
-                                        ctrl.containers={}
-                                        containerTasks.forEach(function(ct) {
-                                            var sysName = ct.fields['Logrocon.System']
-                                            if(ctrl.containers[sysName]==null) ctrl.containers[sysName]=[]
-                                            ctrl.containers[sysName].push(ct.fields['System.Title'])
-                                        })
-                                        ctrl.containerNames =containerTasks.map(function(rt) {return rt.fields['System.Title']})
-                                        ctrl.containerNames.forEach(function(elem) {
-                                            $scope.selectedConts[elem]=ctrl.approvedDestination != undefined ? true : false
-                                        })
-                                        ctrl.findContainersUserStory(witClient,containerTasks);
-                                        VSS.notifyLoadSucceeded();
-                                        $scope.$apply();
-                                    },ctrl.reportError)
+                                            ctrl.containerNames.forEach(function(elem) {
+                                                $scope.selectedConts[elem.title]=false
+                                            })
+                                            ctrl.findContainersUserStory(witClient,containerTasks);
+                                            VSS.notifyLoadSucceeded();
+                                            $scope.$apply();
+                                        },ctrl.reportError)
+                                    });
                                 },ctrl.reportError)
                                 $("#buttonsPlaceHolder").show('fast');
                             }
@@ -428,9 +492,9 @@ Array.prototype.unique = function () {
                                 usarray = usarray.concat(userstories);
                                 ctrl.containerUserStories[container.fields['System.Title']]=usarray;
                                 $scope.$apply();
-                            },ctrl.reportError)
-                        })                    
-                    },ctrl.reportError)
+                            },ctrl.reportError);
+                        }, ctrl.reportError);                    
+                    },ctrl.reportError);
                 })
             }
 
@@ -492,6 +556,7 @@ Array.prototype.unique = function () {
     <div ng-controller="ActionsController as ctrl" style="display:flex; flex-direction:column;height:100%;">
         <div class="message-area-control closeable error-message" style="max-height:80px; overflow-x:hidden; overflow-y:auto;" ng-show="ctrl.ErrorMsg!=''">{{ctrl.ErrorMsg}}</div>
         <div id="mainDiv" style="display:flex; flex-direction:column;height:80%;visibility:visible;">
+
             <div id="authDiv" style="width:50%;align-self:flex-start">
                 <div style="display:flex; flex-direction: row;justify-content: space-between">
                     <span>Username:</span><span>{{ctrl.currentUser.uniqueName}}</span>
@@ -501,7 +566,7 @@ Array.prototype.unique = function () {
                 </div>
                 <button ng-if="ctrl.wiType=='Task'" ng-click="ctrl.startTaskBuild()">Start build</button>
             </div>
-            <ul ng-if="ctrl.wiType=='User Story'">
+            <ul ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'">
                 <div id="systemButtonsPlaceHolder">
                     <button id="TestDestination" ng-disabled="!(ctrl.approvedDestination=='Test')" ng-click="ctrl.setSystem(null, 'Test')">Test</button>
                     <button id="PreProdDestination" ng-disabled="!(ctrl.approvedDestination=='PreProd' && ctrl.isLinearManager)" ng-click="ctrl.setSystem(null, 'PreProd')">PreProd</button>
@@ -512,10 +577,10 @@ Array.prototype.unique = function () {
                 <ul>
                     <li ng-repeat="contName in ctrl.containerNames">
                         <input type="checkbox" name="selectedContainers[]"
-                        ng-model="selectedConts[contName]" ng-disabled="ctrl.buttonDestinationValue=='' || ctrl.buttonDestinationValue==undefined"/>{{contName}}
+                        ng-model="selectedConts[contName.title]" ng-disabled="ctrl.buttonDestinationValue=='' || ctrl.buttonDestinationValue==undefined || !contName.taskPassed"/>{{contName.title}}
                         <div style="position: relative; left: 200px; top: -10px;">
                             <ul>
-                                <li ng-repeat="userstory in ctrl.containerUserStories[contName]">{{userstory.fields["System.Title"]}}</li>
+                                <li ng-repeat="userstory in ctrl.containerUserStories[contName.title]">{{userstory.fields["System.Title"]}}</li>
                             </ul>
                         </div>
                     </li>
@@ -536,8 +601,8 @@ Array.prototype.unique = function () {
         <div id="footer" style="width:100%;text-align:right;height:20px;">
             <hr/>
             <div id="buttonsPlaceHolder" style="display:none">
-                <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.deployWorkItem()">Deploy user story</button>
-                <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.revertDeployWorkItem()">Revert deploy user story</button>
+                <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.deployWorkItem()">Deploy</button>
+                <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.revertDeployWorkItem()">Revert deploy</button>
             </div>
         </div>
         <div class="wait-control-target"></div>
