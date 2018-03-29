@@ -85,6 +85,10 @@ Array.prototype.unique = function () {
 
             this.startBuilds = function(workItem, rollback) {
                 ctrl=this;
+                if(this.password=="") {
+                    this.ErrorMsg="Password couldn't be empty";
+                    return;
+                }
                 if(rollback===undefined) rollback=false;
                 var builds = [];
                 var wiType =workItem.fields["System.WorkItemType"]
@@ -200,11 +204,10 @@ Array.prototype.unique = function () {
                 this.startBuilds(this.workItem);
             }
             this.logBuild = function(workItemId,build) {
-                var user = VSS.getWebContext().user;
                 var patchDoc = [{
                     op : "add",
                     path : "/fields/System.History",
-                    value: `Build for ${build.system} has been started by ${user.name}`
+                    value: `started build for ${build.system}`
                 }]
                 ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
                 .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
