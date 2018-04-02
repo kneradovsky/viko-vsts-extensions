@@ -29,7 +29,10 @@ var executeCDActionsProvider = (function () {
             }
         },
         execute: function(actionContext) {
-            this.showExecuteActionsDialog(actionContext);
+            var knownTypes = ["User Story","Task","Bug Prod"];
+            if(knownTypes.indexOf(actionContext.workItemTypeName)!=-1)
+                this.showExecuteActionsDialog(actionContext);
+            else alert("CDActions button only works on the following types: "+knownTypes.join(","));
         }
     };
 }());

@@ -85,7 +85,7 @@ Array.prototype.unique = function () {
 
             this.startBuilds = function(workItem, rollback) {
                 ctrl=this;
-                if(this.password=="") {
+                if(this.password==null || this.password=="") {
                     this.ErrorMsg="Password couldn't be empty";
                     return;
                 }
@@ -294,7 +294,7 @@ Array.prototype.unique = function () {
             {
                 var deferred = $.Deferred();
                 var managerArray = this.BuildsService.getManagers();
-                if (managerArray == null || uniqName == null) return false;
+                if (managerArray == null) return false;
                 ctrl.isLinearManager = false;
 
                 VSS.require(["TFS/Core/RestClient"], function(_RestClient) {
