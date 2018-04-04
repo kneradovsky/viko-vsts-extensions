@@ -125,10 +125,10 @@ angular.module("ExecActions.services").service("BuildsConfigurationService", fun
         if(this.USBuilds[system]==undefined) return undefined;
         return this.USBuilds[system][type][destination]
     }
-    this.getManagers = function()
+    this.getManagers = function(env)
     {
         if (this.Managers == undefined) return undefined;
-        return this.Managers;
+        return this.Managers[env];
     }
 
     this.isSystemInCD = function(system) {
