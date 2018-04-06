@@ -48,9 +48,13 @@ Array.prototype.unique = function () {
             this.workItem = null;
             this.approvedDestination = undefined;
             this.buttonDestinationValue = undefined;
+            this.bugProdTestingFlag = true;
 
             this.containerLinkIds = [];
             this.currentUser = null;
+            this.password = null;
+
+            this.isManager = { Test: false, PreProd: false, Prod: false};
 
             this.russianDictionary = {
                 no: "\u043D\u0435\u0442",//нет
@@ -84,6 +88,10 @@ Array.prototype.unique = function () {
 
             this.startBuilds = function(workItem, rollback) {
                 ctrl=this;
+                if(this.password==null || this.password=="") {
+                    this.ErrorMsg="Password couldn't be empty";
+                    return;
+                }
                 if(rollback===undefined) rollback=false;
                 var builds = [];
                 var wiType =workItem.fields["System.WorkItemType"]
@@ -133,11 +141,12 @@ Array.prototype.unique = function () {
                     //build.headers['Origin']=webctx.host.uri
                     //create token
                     //if(build.token!=undefined && build.token!="") build.headers["Authorization"]="Basic "+build.token
-                    var tokenStr = this.currentUser.uniqueName+":"+this.password;
+                    var username = ctrl.currentUser.uniqueName.split("\\")[1];
+                    var tokenStr = username+":"+ctrl.password;
                     build.headers["Authorization"]="Basic "+btoa(tokenStr);
-                    ctrl.logBuild(workItem.id,build);
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
+                        ctrl.logBuild(workItem.id,build);
                         ctrl.processBuild(build);
                         ctrl.cdReportLines.push("build "+build.buildDefinition+" started on TFS")
                     } else {
@@ -146,8 +155,14 @@ Array.prototype.unique = function () {
                             url : build.url,
                             headers: build.headers,
                             data: buildParams,
-                            error: function(jqXHR, textStatus, error) {ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()},
-                            success: function(data,testStatus,jqXHR) {ctrl.cdReportLines.push("Response: "+testStatus);$scope.$apply()},
+                            error: function(jqXHR, textStatus, error) {
+                                ctrl.logBuild(workItem.id,build,textStatus);
+                                ctrl.ErrorMsg=error+" "+textStatus;console.log("client error4:");console.log(error);$scope.$apply()
+                            },
+                            success: function(data,testStatus,jqXHR) {
+                                ctrl.logBuild(workItem.id,build);
+                                ctrl.cdReportLines.push("Response: "+testStatus);$scope.$apply()
+                            },
                             dataType: 'html'
                         })
                         var logLine = 'build started on jenkins - '+build.url
@@ -197,12 +212,11 @@ Array.prototype.unique = function () {
             this.startTaskBuild = function() {
                 this.startBuilds(this.workItem);
             }
-            this.logBuild = function(workItemId,build) {
-                var user = VSS.getWebContext().user;
+            this.logBuild = function(workItemId,build,errorText) {
                 var patchDoc = [{
                     op : "add",
                     path : "/fields/System.History",
-                    value: `Build for ${build.system} has been started by ${user.name}`
+                    value: errorText === undefined ? `failed to start build for ${build.system}, error: ${errorText}`:`started build for ${build.system}`
                 }]
                 ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
                 .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
@@ -257,8 +271,12 @@ Array.prototype.unique = function () {
                 var approveSupport = usWorkItem.fields["Logrocon.ApproveSupport"].toLowerCase();
                 var usState = usWorkItem.fields["System.State"].toLowerCase();
                 var usApproveDevelopment = usWorkItem.fields["Logrocon.ApproveDevelopment"].toLowerCase();
+                var wiType = usWorkItem.fields["System.WorkItemType"];
                 
                 var approveFor = undefined;//undefined System
+
+                if (wiType == "Bug Prod" && !ctrl.bugProdTestingFlag)
+                    return undefined;
 
                 if (usApproveDevelopment == ctrl.russianDictionary.yes)
                 {
@@ -276,7 +294,6 @@ Array.prototype.unique = function () {
                         && (approveSecurity == ctrl.russianDictionary.approved 
                         || approveSecurity == ctrl.russianDictionary.approvedwithcondition
                         || approveSecurity == ctrl.russianDictionary.notrequired))
-
                         {
                             approveFor = "Prod";//'Prod' System
                         }
@@ -285,47 +302,101 @@ Array.prototype.unique = function () {
                 return approveFor;
             }
 
-            this.checkLinearManager = function(uniqName)
-            {
+            this.getAllTeamMembers = async function(client, projectId, teamId, queryCounter = 0, identityArray = [], execute = true){
                 var deferred = $.Deferred();
-                var managerArray = this.BuildsService.getManagers();
-                if (managerArray == null || uniqName == null) return false;
-                ctrl.isLinearManager = false;
+                if (!execute)
+                    deferred.resolve(identityArray);
+                execute = false;
+                client.getTeamMembers(projectId, teamId, 1000, queryCounter*1000).then(function(idents) {
+                    if (idents.length == 1000)
+                        execute = true;
+                    idents.filter(function(m) { identityArray.push(m) });
+                    if (execute)
+                        deferred.resolve(ctrl.getAllTeamMembers(client, projectId, teamId, queryCounter+1, identityArray, execute));
+                    else
+                        deferred.resolve(identityArray);
+                });
+                return deferred.promise();
+            }
 
+            this.getAllTeams = async function(client, projectId, queryCounter = 0, teamsArray = [], execute = true){
+                var deferred = $.Deferred();
+                if (!execute)
+                    deferred.resolve(teamsArray);
+                execute = false;
+                client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
+                    if (teams.length == 1000)
+                        execute = true;
+                    teams.filter(function(m) { teamsArray.push(m) });
+                    if (execute)
+                        deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
+                    else
+                        deferred.resolve(teamsArray);
+                });
+                return deferred.promise();
+            }
+
+            this.checkLinearManager = function(workItem) {
+                var deferred = $.Deferred();
+                ctrl.isManager = { Test: false, PreProd: false, Prod: false};
                 VSS.require(["TFS/Core/RestClient"], function(_RestClient) {
                     var client = _RestClient.getClient();
                     var tfsContext = ctrl.tfsContext.TfsContext.getDefault();
-                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
-                        var filteredTeams = teams.filter(function (x) {
-                            for (var i in managerArray)
-                            {
-                                if (x.name == managerArray[i])
-                                    return true;
+                    var wiTeamAreas = workItem.fields["System.AreaPath"].split("\\");
+                    var teamName = wiTeamAreas[wiTeamAreas.length-1];
+                    //get WI team members
+                    ctrl.getAllTeams(client,tfsContext.contextData.project.id).then(function (teams) {
+                        var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
+                        ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
+                        //var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
+                            if(tm.filter(function(m) {return m.id==tfsContext.currentIdentity.id}).length==0)
+                                return; //return if nonmember press on the button;
+                            //check for each environment
+                            envQueueLen = 3;
+                            ["Test","PreProd","Prod"].forEach(function(env) {
+                                var managerArray = ctrl.BuildsService.getManagers(env);
+                                if (managerArray == undefined){
+                                    envQueueLen--;
+                                    return;
+                                }
+                                var adminTeams = teams.filter(function (t) {return managerArray.indexOf(t.name)!=-1});
+                                if(adminTeams.length==0) {
+                                    envQueueLen--;
+                                    return;
+                                }
+                                var queleLen = adminTeams.length;
+                                for (var fTeam in adminTeams) {
+                                    if (adminTeams[fTeam] == undefined || fTeam == "unique")
+                                        continue;
+                                    client.getTeamMembers(tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+                                        queleLen--;
+                                        if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
+                                            ctrl.isManager[env]=true;
+                                        }
+                                    })
+                                }
+                                let waitManagersComplete = function() {
+                                    if(queleLen==0) envQueueLen--;
+                                    else {
+                                        console.log("waiting to load all admins");
+                                        setTimeout(waitManagersComplete,1000);
+                                    }
+                                }
+                                waitManagersComplete();
+                            })
+                            let waitEnvComplete = function() {
+                                if(envQueueLen==0) deferred.resolve();
+                                else {
+                                    console.log("Wait for all environments complete");
+                                    setTimeout(waitEnvComplete,1000);
+                                }
                             }
-                        });
-
-                        if (filteredTeams.length == 0)
-                        {
-                            ctrl.isLinearManager = false;
-                            deferred.resolve();
-                        }
-                    
-                        for (var fTeam in filteredTeams)
-                        {
-                            if (filteredTeams[fTeam] == undefined || fTeam == "unique")
-                                continue;
-                            client.getTeamMembers(tfsContext.contextData.project.id, filteredTeams[fTeam].id).then(function (members) {
-                                if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0)
-                                    ctrl.isLinearManager = true;
-                            });
-                        }
-                        deferred.resolve();
-                    });
-                });
+                            waitEnvComplete();
+                        })
+                    })
+                })
                 return deferred.promise();
-
             }
-
             VSS.ready(function () {
                 ctrl.BuildsService = $injector.get("BuildsConfigurationService");
                 ctrl.BuildsService.init().then(function() {
@@ -353,6 +424,7 @@ Array.prototype.unique = function () {
                             ctrl.workItem =workItem;
                             ctrl.wiType = workItem.fields["System.WorkItemType"];
                             var usWorkItem = workItem;
+                            var currentRelease = workItem.fields["Logrocon.Release"];
                             if(ctrl.wiType=='Task') {
                                 //ctrl.startBuilds(workItem); //now task started after authorization
                                 VSS.notifyLoadSucceeded();
@@ -377,12 +449,15 @@ Array.prototype.unique = function () {
                                         var usState = usWorkItem.fields["System.State"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"];*/
 
-
-                                        var approve = t.fields["Logrocon.CDCIApprovement"];
+                                        var approve = t.fields["Logrocon.CDCIApprovement"] == undefined ? null : t.fields["Logrocon.CDCIApprovement"].toLowerCase();
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
+                                        var approveTesting = t.fields["Logrocon.ApproveTesting"].toLowerCase() == ctrl.russianDictionary.yes;
+
+                                        if (!approveTesting)
+                                                ctrl.bugProdTestingFlag = approveTesting;
 
                                         var taskFlag = false;
-                                        if (activity && approve != null && approve.toLowerCase() == ctrl.russianDictionary.yes)
+                                        if (activity && approve != null && approve == ctrl.russianDictionary.yes)
                                             taskFlag = true;
                                             
 
@@ -407,13 +482,12 @@ Array.prototype.unique = function () {
                                     ctrl.approvedDestination = ctrl.checkApproveStates(usWorkItem);
                                     var uniqName = ctrl.tfsContext.TfsContext.getDefault().currentIdentity.uniqueName;
                                     //Check Permissions
-                                    ctrl.checkLinearManager(uniqName).then(function() {
+                                    ctrl.checkLinearManager(usWorkItem).then(function() {
                                         //containerLinkIds = containerLinkIds.unique();
                                         witClient.getWorkItems(Object.keys(ctrl.containerLinkIds),undefined,null,"All")
                                         .then(function(reltaskList) {
-                                            var containerTasks = reltaskList.filter(function(rt) {
-                                                return rt.fields['System.WorkItemType']=="Container"
-                                            });
+                                            var containerTasks = reltaskList
+                                                                    .filter(function(rt) {return rt.fields['System.WorkItemType']=="Container"})
                                             //map container names to system names
                                             ctrl.containers={}
                                             containerTasks.forEach(function(ct) {
@@ -438,7 +512,7 @@ Array.prototype.unique = function () {
                                             ctrl.containerNames.forEach(function(elem) {
                                                 $scope.selectedConts[elem.title]=false
                                             })
-                                            ctrl.findContainersUserStory(witClient,containerTasks);
+                                            ctrl.findContainersUserStory(witClient,containerTasks,currentRelease);
                                             VSS.notifyLoadSucceeded();
                                             $scope.$apply();
                                         },ctrl.reportError)
@@ -469,7 +543,7 @@ Array.prototype.unique = function () {
                 $scope.$apply();
             }
 
-            this.findContainersUserStory = function(witClient,containers) {
+            this.findContainersUserStory = function(witClient,containers,currentRelease) {
                 //find tasks
                 var ctrl = this;
                 ctrl.containerUserStories = {}
@@ -486,6 +560,8 @@ Array.prototype.unique = function () {
                                     .map(function(strid) {return parseInt(strid)})
                                     .unique();
                             witClient.getWorkItems(taskUs,undefined, null, "All").then(function(userstories) {
+                                userstories = userstories
+                                                .filter(function(us) {return us.fields["Logrocon.Release"]==currentRelease || us.fields["System.WorkItemType"]=="Bug Prod"});
                                 var usarray = ctrl.containerUserStories[container.fields['System.Title']]
                                 if(usarray === undefined) 
                                     usarray=[];
@@ -562,25 +638,27 @@ Array.prototype.unique = function () {
                     <span>Username:</span><span>{{ctrl.currentUser.uniqueName}}</span>
                 </div>
                 <div style="display:flex; flex-direction: row;justify-content: space-between">
-                    <span>Password:</span><input type="password" ngmodel="password">
+                    <span>Password:</span><input type="password" ng-model="ctrl.password">
                 </div>
                 <button ng-if="ctrl.wiType=='Task'" ng-click="ctrl.startTaskBuild()">Start build</button>
             </div>
             <ul ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'">
                 <div id="systemButtonsPlaceHolder">
-                    <button id="TestDestination" ng-disabled="!(ctrl.approvedDestination=='Test')" ng-click="ctrl.setSystem(null, 'Test')">Test</button>
-                    <button id="PreProdDestination" ng-disabled="!(ctrl.approvedDestination=='PreProd' && ctrl.isLinearManager)" ng-click="ctrl.setSystem(null, 'PreProd')">PreProd</button>
-                    <button id="ProdDestination" ng-disabled="!(ctrl.approvedDestination=='Prod' && ctrl.isLinearManager)" ng-click="ctrl.setSystem(null, 'Prod')">Prod</button>
+                    <button id="TestDestination" ng-disabled="!(ctrl.approvedDestination=='Test' && ctrl.isManager['Test'])" ng-click="ctrl.setSystem(null, 'Test')">Test</button>
+                    <button id="PreProdDestination" ng-disabled="!(ctrl.approvedDestination=='PreProd' && ctrl.isManager['PreProd'])" ng-click="ctrl.setSystem(null, 'PreProd')">PreProd</button>
+                    <button id="ProdDestination" ng-disabled="!(ctrl.approvedDestination=='Prod' && ctrl.isManager['Prod'])" ng-click="ctrl.setSystem(null, 'Prod')">Prod</button>
                 </div>
             </ul>
-            <div ng-if="ctrl.wiType=='User Story'" id="containersList" style="overflow:scroll; height: 100%;">
+            <div ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'" id="containersList" style="overflow:scroll; height: 100%;">
                 <ul>
                     <li ng-repeat="contName in ctrl.containerNames">
                         <input type="checkbox" name="selectedContainers[]"
                         ng-model="selectedConts[contName.title]" ng-disabled="ctrl.buttonDestinationValue=='' || ctrl.buttonDestinationValue==undefined || !contName.taskPassed"/>{{contName.title}}
                         <div style="position: relative; left: 200px; top: -10px;">
                             <ul>
-                                <li ng-repeat="userstory in ctrl.containerUserStories[contName.title]">{{userstory.fields["System.Title"]}}</li>
+                                <li ng-repeat="userstory in ctrl.containerUserStories[contName.title]">
+                                        <a target="_blank" href="{{userstory._links.html.href}}">{{userstory.id}}</a> {{userstory.fields["System.Title"]}}
+                                </li>
                             </ul>
                         </div>
                     </li>
