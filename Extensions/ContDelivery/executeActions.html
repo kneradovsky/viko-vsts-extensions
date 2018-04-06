@@ -368,7 +368,7 @@ Array.prototype.unique = function () {
                                 for (var fTeam in adminTeams) {
                                     if (adminTeams[fTeam] == undefined || fTeam == "unique")
                                         continue;
-                                    client.getTeamMembers(tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+                                    ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
                                         queleLen--;
                                         if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
                                             ctrl.isManager[env]=true;
