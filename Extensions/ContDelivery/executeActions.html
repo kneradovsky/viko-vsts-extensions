@@ -212,10 +212,11 @@ Array.prototype.unique = function () {
                 this.startBuilds(this.workItem);
             }
             this.logBuild = function(workItemId,build,errorText) {
+                var system = build.system != undefined ? build.system : "containers "+build.containerNames.join(",");
                 var patchDoc = [{
                     op : "add",
                     path : "/fields/System.History",
-                    value: errorText === undefined ? `failed to start build for ${build.system}, error: ${errorText}`:`started build for ${build.system}`
+                    value: errorText === undefined ? `started build for ${system}` : `failed to start build for ${system}, error: ${errorText}`
                 }]
                 ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
                 .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
@@ -513,9 +514,9 @@ Array.prototype.unique = function () {
                                     .map(function(link) { return link.url.split("/").pop() })
                                     .map(function(strid) {return parseInt(strid)})
                                     .unique();
-                            witClient.getWorkItems(taskUs,undefined, null, "All").then(function(userstories) {
-                                userstories = userstories
-                                                .filter(function(us) {return us.fields["Logrocon.Release"]==currentRelease || us.fields["System.WorkItemType"]=="Bug Prod"});
+                            witClient.getWorkItems(taskUs,undefined, null, "All").then(function(in_userstories) {
+                                var userstories = in_userstories
+                                                .filter(function(us) {return us.fields["Logrocon.Release"]==currentRelease});
                                 var usarray = ctrl.containerUserStories[container.fields['System.Title']]
                                 if(usarray === undefined) 
                                     usarray=[];
