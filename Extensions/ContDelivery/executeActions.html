@@ -302,6 +302,7 @@ Array.prototype.unique = function () {
                 return approveFor;
             }
 
+
             this.getAllTeamMembers = async function(client, projectId, teamId, queryCounter = 0, identityArray = [], execute = true){
                 var deferred = $.Deferred();
                 if (!execute)
@@ -345,6 +346,7 @@ Array.prototype.unique = function () {
                     var wiTeamAreas = workItem.fields["System.AreaPath"].split("\\");
                     var teamName = wiTeamAreas[wiTeamAreas.length-1];
                     //get WI team members
+
                     ctrl.getAllTeams(client,tfsContext.contextData.project.id).then(function (teams) {
                         var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
                         ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
@@ -355,11 +357,13 @@ Array.prototype.unique = function () {
                             envQueueLen = 3;
                             ["Test","PreProd","Prod"].forEach(function(env) {
                                 var managerArray = ctrl.BuildsService.getManagers(env);
+
                                 if (managerArray == undefined){
                                     envQueueLen--;
                                     return;
                                 }
                                 var adminTeams = teams.filter(function (t) {return managerArray.indexOf(t.name)!=-1});
+
                                 if(adminTeams.length==0) {
                                     envQueueLen--;
                                     return;
@@ -369,6 +373,7 @@ Array.prototype.unique = function () {
                                     if (adminTeams[fTeam] == undefined || fTeam == "unique")
                                         continue;
                                     ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+
                                         queleLen--;
                                         if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
                                             ctrl.isManager[env]=true;
