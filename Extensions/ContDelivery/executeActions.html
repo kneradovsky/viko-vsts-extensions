@@ -48,6 +48,7 @@ Array.prototype.unique = function () {
             this.workItem = null;
             this.approvedDestination = undefined;
             this.buttonDestinationValue = undefined;
+            this.bugProdTestingFlag = true;
 
             this.containerLinkIds = [];
             this.currentUser = null;
@@ -270,8 +271,12 @@ Array.prototype.unique = function () {
                 var approveSupport = usWorkItem.fields["Logrocon.ApproveSupport"].toLowerCase();
                 var usState = usWorkItem.fields["System.State"].toLowerCase();
                 var usApproveDevelopment = usWorkItem.fields["Logrocon.ApproveDevelopment"].toLowerCase();
+                var wiType = usWorkItem.fields["System.WorkItemType"];
                 
                 var approveFor = undefined;//undefined System
+
+                if (wiType == "Bug Prod" && !ctrl.bugProdTestingFlag)
+                    return undefined;
 
                 if (usApproveDevelopment == ctrl.russianDictionary.yes)
                 {
@@ -289,13 +294,47 @@ Array.prototype.unique = function () {
                         && (approveSecurity == ctrl.russianDictionary.approved 
                         || approveSecurity == ctrl.russianDictionary.approvedwithcondition
                         || approveSecurity == ctrl.russianDictionary.notrequired))
-
                         {
                             approveFor = "Prod";//'Prod' System
                         }
                     }
                 }
                 return approveFor;
+            }
+
+
+            this.getAllTeamMembers = async function(client, projectId, teamId, queryCounter = 0, identityArray = [], execute = true){
+                var deferred = $.Deferred();
+                if (!execute)
+                    deferred.resolve(identityArray);
+                execute = false;
+                client.getTeamMembers(projectId, teamId, 1000, queryCounter*1000).then(function(idents) {
+                    if (idents.length == 1000)
+                        execute = true;
+                    idents.filter(function(m) { identityArray.push(m) });
+                    if (execute)
+                        deferred.resolve(ctrl.getAllTeamMembers(client, projectId, teamId, queryCounter+1, identityArray, execute));
+                    else
+                        deferred.resolve(identityArray);
+                });
+                return deferred.promise();
+            }
+
+            this.getAllTeams = async function(client, projectId, queryCounter = 0, teamsArray = [], execute = true){
+                var deferred = $.Deferred();
+                if (!execute)
+                    deferred.resolve(teamsArray);
+                execute = false;
+                client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
+                    if (teams.length == 1000)
+                        execute = true;
+                    teams.filter(function(m) { teamsArray.push(m) });
+                    if (execute)
+                        deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
+                    else
+                        deferred.resolve(teamsArray);
+                });
+                return deferred.promise();
             }
 
             this.checkLinearManager = function(workItem) {
@@ -307,16 +346,24 @@ Array.prototype.unique = function () {
                     var wiTeamAreas = workItem.fields["System.AreaPath"].split("\\");
                     var teamName = wiTeamAreas[wiTeamAreas.length-1];
                     //get WI team members
-                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
+
+                    ctrl.getAllTeams(client,tfsContext.contextData.project.id).then(function (teams) {
                         var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
-                        client.getTeamMembers(tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
+                        ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
+                        //var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
                             if(tm.filter(function(m) {return m.id==tfsContext.currentIdentity.id}).length==0)
                                 return; //return if nonmember press on the button;
                             //check for each environment
                             envQueueLen = 3;
                             ["Test","PreProd","Prod"].forEach(function(env) {
                                 var managerArray = ctrl.BuildsService.getManagers(env);
-                                var adminTeams = teams.filter(function (t) {return managerArray.indexOf(t.name)!=-1})
+
+                                if (managerArray == undefined){
+                                    envQueueLen--;
+                                    return;
+                                }
+                                var adminTeams = teams.filter(function (t) {return managerArray.indexOf(t.name)!=-1});
+
                                 if(adminTeams.length==0) {
                                     envQueueLen--;
                                     return;
@@ -325,7 +372,8 @@ Array.prototype.unique = function () {
                                 for (var fTeam in adminTeams) {
                                     if (adminTeams[fTeam] == undefined || fTeam == "unique")
                                         continue;
-                                    client.getTeamMembers(tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+                                    ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id, adminTeams[fTeam].id).then(function (members) {
+
                                         queleLen--;
                                         if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
                                             ctrl.isManager[env]=true;
@@ -406,12 +454,15 @@ Array.prototype.unique = function () {
                                         var usState = usWorkItem.fields["System.State"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"];*/
 
-
-                                        var approve = t.fields["Logrocon.CDCIApprovement"];
+                                        var approve = t.fields["Logrocon.CDCIApprovement"] == undefined ? null : t.fields["Logrocon.CDCIApprovement"].toLowerCase();
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
+                                        var approveTesting = t.fields["Logrocon.ApproveTesting"].toLowerCase() == ctrl.russianDictionary.yes;
+
+                                        if (!approveTesting)
+                                                ctrl.bugProdTestingFlag = approveTesting;
 
                                         var taskFlag = false;
-                                        if (activity && approve != null && approve.toLowerCase() == ctrl.russianDictionary.yes)
+                                        if (activity && approve != null && approve == ctrl.russianDictionary.yes)
                                             taskFlag = true;
                                             
 

@@ -41,8 +41,7 @@
                 VSS.require(["Presentation/Scripts/TFS/TFS.Host.TfsContext", "TFS/Core/RestClient"], function(_TfsContext, _RestClient) {
                     var client = _RestClient.getClient();
                     var tfsContext = _TfsContext.TfsContext.getDefault();
-                    client.getTeams(tfsContext.contextData.project.id).then(function (teams) {
-                        var team = teams.filter(function (x) { return x.name == "CDActionAdministrators" })[0];
+                    client.getTeam(tfsContext.contextData.project.id, "CDActionAdministrators").then(function (team) {
                         client.getTeamMembers(tfsContext.contextData.project.id, team.id).then(function (members) {
                             if (members.filter(function (x) {return x.id == tfsContext.currentIdentity.id}).length > 0) {
                                 document.getElementById("CDSettings").style.visibility = 'visible';
