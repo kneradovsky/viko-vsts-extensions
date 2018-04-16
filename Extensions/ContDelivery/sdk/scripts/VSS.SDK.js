@@ -1,15 +1,4 @@
-//----------------------------------------------------------
 // Copyright (C) Microsoft Corporation. All rights reserved.
-//----------------------------------------------------------
-///<reference path='../References/VSS-Common.d.ts' />
-///<reference path='../References/VSS.SDK.Interfaces.d.ts' />
-///<reference path='../References/SDK.Interfaces.d.ts' />
-///<reference path='../References/VSS.SDK.Interfaces.d.ts' />
-///<reference path='../References/VSS-Common.d.ts' />
-/// This file is going to be embedded into the following typescript files in the build time:
-///     - VSS/SDK/XDM.ts
-///     - VSS/SDK/VSS.SDK.ts
-/// This module is unlike other modules which doesn't use AMD loading.
 var XDM;
 (function (XDM) {
     /**
@@ -19,7 +8,7 @@ var XDM;
         return new XdmDeferred();
     }
     XDM.createDeferred = createDeferred;
-    var XdmDeferred = (function () {
+    var XdmDeferred = /** @class */ (function () {
         function XdmDeferred() {
             var _this = this;
             this._resolveCallbacks = [];
@@ -143,7 +132,7 @@ var XDM;
     /**
      * Catalog of objects exposed for XDM
      */
-    var XDMObjectRegistry = (function () {
+    var XDMObjectRegistry = /** @class */ (function () {
         function XDMObjectRegistry() {
             this._registeredObjects = {};
         }
@@ -155,6 +144,14 @@ var XDM;
         */
         XDMObjectRegistry.prototype.register = function (instanceId, instance) {
             this._registeredObjects[instanceId] = instance;
+        };
+        /**
+        * Unregister an object (instance or factory method) that was previously registered by this frame
+        *
+        * @param instanceId unique id of the registered object
+        */
+        XDMObjectRegistry.prototype.unregister = function (instanceId) {
+            delete this._registeredObjects[instanceId];
         };
         /**
         * Get an instance of an object registered with the given id
@@ -186,7 +183,7 @@ var XDM;
      * Represents a channel of communication between frames\document
      * Stays "alive" across multiple funtion\method calls
      */
-    var XDMChannel = (function () {
+    var XDMChannel = /** @class */ (function () {
         function XDMChannel(postToWindow, targetOrigin) {
             if (targetOrigin === void 0) { targetOrigin = null; }
             this._nextMessageId = 1;
@@ -431,6 +428,7 @@ var XDM;
                     item = parentObject[key];
                 }
                 catch (ex) {
+                    // Cannot access this property. Skip its serialization.
                 }
                 var itemType = typeof item;
                 if (itemType === "undefined") {
@@ -510,6 +508,7 @@ var XDM;
                     }
                 }
                 catch (ex) {
+                    // We may not be able to access the iterator of this object. Skip its serialization.
                 }
                 for (var key in keys) {
                     // Don't serialize properties that start with an underscore.
@@ -590,7 +589,7 @@ var XDM;
     /**
     * Registry of XDM channels kept per target frame/window
     */
-    var XDMChannelManager = (function () {
+    var XDMChannelManager = /** @class */ (function () {
         function XDMChannelManager() {
             this._channels = [];
             this._subscribe(window);
@@ -612,6 +611,9 @@ var XDM;
             this._channels.push(channel);
             return channel;
         };
+        XDMChannelManager.prototype.removeChannel = function (channel) {
+            this._channels = this._channels.filter(function (c) { return c !== channel; });
+        };
         XDMChannelManager.prototype._handleMessageReceived = function (event) {
             // get channel and dispatch to it
             var i, len, channel;
@@ -621,6 +623,7 @@ var XDM;
                     rpcMessage = JSON.parse(event.data);
                 }
                 catch (error) {
+                    // The message is not a valid JSON string. Not one of our events.
                 }
             }
             if (rpcMessage) {
@@ -666,8 +669,9 @@ var XDM;
 })(XDM || (XDM = {}));
 var VSS;
 (function (VSS) {
+    // W A R N I N G: if VssSDKVersion changes, the VSS WEB SDK demand resolver needs to be updated with the new version
     VSS.VssSDKVersion = 2.0;
-    VSS.VssSDKRestVersion = "2.2";
+    VSS.VssSDKRestVersion = "4.0";
     var bodyElement;
     var webContext;
     var hostPageContext;
@@ -948,7 +952,9 @@ var VSS;
     function issueVssRequire(modules, callback) {
         if (hostPageContext.diagnostics.bundlingEnabled) {
             window.require(["VSS/Bundling"], function (VSS_Bundling) {
-                VSS_Bundling.requireModules(modules, callback);
+                VSS_Bundling.requireModules(modules).spread(function () {
+                    callback.apply(this, arguments);
+                });
             });
         }
         else {
@@ -1101,6 +1107,15 @@ var VSS;
     }
     VSS.register = register;
     /**
+    * Removes an object that this extension exposed to the host frame.
+    *
+    * @param instanceId unique id of the registered object
+    */
+    function unregister(instanceId) {
+        parentChannel.getObjectRegistry().unregister(instanceId);
+    }
+    VSS.unregister = unregister;
+    /**
     * Get an instance of an object registered with the given id
     *
     * @param instanceId unique id of the registered object
@@ -1126,12 +1141,17 @@ var VSS;
     VSS.getAppToken = getAppToken;
     /**
     * Requests the parent window to resize the container for this extension based on the current extension size.
+    *
+    * @param width Optional width, defaults to scrollWidth
+    * @param height Optional height, defaults to scrollHeight
     */
-    function resize() {
+    function resize(width, height) {
         if (!bodyElement) {
             bodyElement = document.getElementsByTagName("body").item(0);
         }
-        parentChannel.invokeRemoteMethod("resize", "VSS.HostControl", [bodyElement.scrollWidth, bodyElement.scrollHeight]);
+        var newWidth = typeof width === "number" ? width : bodyElement.scrollWidth;
+        var newHeight = typeof height === "number" ? height : bodyElement.scrollHeight;
+        parentChannel.invokeRemoteMethod("resize", "VSS.HostControl", [newWidth, newHeight]);
     }
     VSS.resize = resize;
     function setupAmdLoader() {
@@ -1378,4 +1398,3 @@ var VSS;
         }
     }
 })(VSS || (VSS = {}));
-//dependencies=

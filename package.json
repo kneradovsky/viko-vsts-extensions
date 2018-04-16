@@ -22,6 +22,7 @@
     "ssl-root-cas": "^1.2",
     "unzip": "^0.1.11",
     "vso-node-api": "^5.1",
+    "vss-web-extension-sdk": "^5.131.0",
     "vsts-specflow": "^1",
     "vsts-task-lib": "^0.9",
     "xml2js": "^0.4.17"
