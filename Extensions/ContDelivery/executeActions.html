@@ -2,6 +2,7 @@
 <html style="background-color:inherit;height:100%;" ng-app="ExecActions">
 
 <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>Continious delivery actions</title>
     <link rel="stylesheet" href="css/app.css" />
 
@@ -53,6 +54,7 @@ Array.prototype.unique = function () {
             this.containerLinkIds = [];
             this.currentUser = null;
             this.password = null;
+            this.cachedTeams = null;
 
             this.isManager = { Test: false, PreProd: false, Prod: false};
 
@@ -322,19 +324,28 @@ Array.prototype.unique = function () {
             }
 
             this.getAllTeams = async function(client, projectId, queryCounter = 0, teamsArray = [], execute = true){
+                var ctrl = this;
                 var deferred = $.Deferred();
+                if(ctrl.cachedTeams!=null) {
+                    deferred.resolve(this.cachedTeams);
+                    execute=false;
+                }
                 if (!execute)
                     deferred.resolve(teamsArray);
-                execute = false;
-                client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
-                    if (teams.length == 1000)
-                        execute = true;
-                    teams.filter(function(m) { teamsArray.push(m) });
-                    if (execute)
-                        deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
-                    else
-                        deferred.resolve(teamsArray);
-                });
+                else {
+                    execute = false;
+                    client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
+                        if (teams.length == 1000)
+                            execute = true;
+                        teams.filter(function(m) { teamsArray.push(m) });
+                        if (execute)
+                            deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
+                        else {
+                            ctrl.cachedTeams=teamsArray;
+                            deferred.resolve(teamsArray);
+                        }
+                    });
+                }
                 return deferred.promise();
             }
 
