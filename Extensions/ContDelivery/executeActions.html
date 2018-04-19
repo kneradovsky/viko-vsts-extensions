@@ -146,6 +146,7 @@ Array.prototype.unique = function () {
                     var username = ctrl.currentUser.uniqueName.split("\\")[1];
                     var tokenStr = username+":"+ctrl.password;
                     build.headers["Authorization"]="Basic "+btoa(tokenStr);
+                    build.headers["Content-Type"]="application/json; charset=utf-8";
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
                         ctrl.logBuild(workItem.id,build);
@@ -154,6 +155,7 @@ Array.prototype.unique = function () {
                     } else {
                         $.ajax({
                             type: "POST",
+                            crossDomain : true,
                             url : build.url,
                             headers: build.headers,
                             data: buildParams,
@@ -219,7 +221,7 @@ Array.prototype.unique = function () {
                 var patchDoc = [{
                     op : "add",
                     path : "/fields/System.History",
-                    value: errorText === undefined ? `started build for ${system}` : `failed to start build for ${system}, error: ${errorText}`
+                    value: errorText === undefined ? "started build for "+system : "failed to start build for "+system+", error: "+errorText
                 }]
                 ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
                 .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
@@ -306,7 +308,10 @@ Array.prototype.unique = function () {
             }
 
 
-            this.getAllTeamMembers = async function(client, projectId, teamId, queryCounter = 0, identityArray = [], execute = true){
+            this.getAllTeamMembers = function(client, projectId, teamId, queryCounter, identityArray, execute){
+                if(queryCounter === undefined) queryCounter=0;
+                if(identityArray === undefined) identityArray=[];
+                if(execute === undefined) execute = true;
                 var deferred = $.Deferred();
                 if (!execute)
                     deferred.resolve(identityArray);
@@ -323,11 +328,13 @@ Array.prototype.unique = function () {
                 return deferred.promise();
             }
 
-            this.getAllTeams = async function(client, projectId, queryCounter = 0, teamsArray = [], execute = true){
-                var ctrl = this;
+            this.getAllTeams = function(client, projectId, queryCounter, teamsArray, execute){
+                if(queryCounter === undefined) queryCounter=0;
+                if(teamsArray === undefined) teamsArray=[];
+                if(execute === undefined) execute = true;
                 var deferred = $.Deferred();
                 if(ctrl.cachedTeams!=null) {
-                    deferred.resolve(this.cachedTeams);
+                    teamsArray = ctrl.cachedTeams;
                     execute=false;
                 }
                 if (!execute)
