@@ -2,6 +2,7 @@
 <html style="background-color:inherit;height:100%;" ng-app="ExecActions">
 
 <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>Continious delivery actions</title>
     <link rel="stylesheet" href="css/app.css" />
 
@@ -53,6 +54,7 @@ Array.prototype.unique = function () {
             this.containerLinkIds = [];
             this.currentUser = null;
             this.password = null;
+            this.cachedTeams = null;
 
             this.isManager = { Test: false, PreProd: false, Prod: false};
 
@@ -144,6 +146,7 @@ Array.prototype.unique = function () {
                     var username = ctrl.currentUser.uniqueName.split("\\")[1];
                     var tokenStr = username+":"+ctrl.password;
                     build.headers["Authorization"]="Basic "+btoa(tokenStr);
+                    build.headers["Content-Type"]="application/json; charset=utf-8";
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
                         ctrl.logBuild(workItem.id,build);
@@ -152,6 +155,7 @@ Array.prototype.unique = function () {
                     } else {
                         $.ajax({
                             type: "POST",
+                            crossDomain : true,
                             url : build.url,
                             headers: build.headers,
                             data: buildParams,
@@ -213,10 +217,11 @@ Array.prototype.unique = function () {
                 this.startBuilds(this.workItem);
             }
             this.logBuild = function(workItemId,build,errorText) {
+                var system = build.system != undefined ? build.system : "containers "+build.containerNames.join(",");
                 var patchDoc = [{
                     op : "add",
                     path : "/fields/System.History",
-                    value: errorText === undefined ? `failed to start build for ${build.system}, error: ${errorText}`:`started build for ${build.system}`
+                    value: errorText === undefined ? "started build for "+system : "failed to start build for "+system+", error: "+errorText
                 }]
                 ctrl.WitClient.updateWorkItem(patchDoc,workItemId,false)
                 .then(function(wit) {console.log("History updated")},function(error) {console.log(error)});
@@ -303,7 +308,10 @@ Array.prototype.unique = function () {
             }
 
 
-            this.getAllTeamMembers = async function(client, projectId, teamId, queryCounter = 0, identityArray = [], execute = true){
+            this.getAllTeamMembers = function(client, projectId, teamId, queryCounter, identityArray, execute){
+                if(queryCounter === undefined) queryCounter=0;
+                if(identityArray === undefined) identityArray=[];
+                if(execute === undefined) execute = true;
                 var deferred = $.Deferred();
                 if (!execute)
                     deferred.resolve(identityArray);
@@ -320,20 +328,31 @@ Array.prototype.unique = function () {
                 return deferred.promise();
             }
 
-            this.getAllTeams = async function(client, projectId, queryCounter = 0, teamsArray = [], execute = true){
+            this.getAllTeams = function(client, projectId, queryCounter, teamsArray, execute){
+                if(queryCounter === undefined) queryCounter=0;
+                if(teamsArray === undefined) teamsArray=[];
+                if(execute === undefined) execute = true;
                 var deferred = $.Deferred();
+                if(ctrl.cachedTeams!=null) {
+                    teamsArray = ctrl.cachedTeams;
+                    execute=false;
+                }
                 if (!execute)
                     deferred.resolve(teamsArray);
-                execute = false;
-                client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
-                    if (teams.length == 1000)
-                        execute = true;
-                    teams.filter(function(m) { teamsArray.push(m) });
-                    if (execute)
-                        deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
-                    else
-                        deferred.resolve(teamsArray);
-                });
+                else {
+                    execute = false;
+                    client.getTeams(projectId, 1000, queryCounter*1000).then(function(teams) {
+                        if (teams.length == 1000)
+                            execute = true;
+                        teams.filter(function(m) { teamsArray.push(m) });
+                        if (execute)
+                            deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
+                        else {
+                            ctrl.cachedTeams=teamsArray;
+                            deferred.resolve(teamsArray);
+                        }
+                    });
+                }
                 return deferred.promise();
             }
 
@@ -564,9 +583,9 @@ Array.prototype.unique = function () {
                                     .map(function(link) { return link.url.split("/").pop() })
                                     .map(function(strid) {return parseInt(strid)})
                                     .unique();
-                            witClient.getWorkItems(taskUs,undefined, null, "All").then(function(userstories) {
-                                userstories = userstories
-                                                .filter(function(us) {return us.fields["Logrocon.Release"]==currentRelease || us.fields["System.WorkItemType"]=="Bug Prod"});
+                            witClient.getWorkItems(taskUs,undefined, null, "All").then(function(in_userstories) {
+                                var userstories = in_userstories
+                                                .filter(function(us) {return us.fields["Logrocon.Release"]==currentRelease});
                                 var usarray = ctrl.containerUserStories[container.fields['System.Title']]
                                 if(usarray === undefined) 
                                     usarray=[];
