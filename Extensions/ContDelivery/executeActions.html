@@ -280,13 +280,12 @@ Array.prototype.unique = function () {
                 
                 var approveFor = undefined;//undefined System
 
-                if (wiType == "Bug Prod" && !ctrl.bugProdTestingFlag)
-                    return undefined;
-
                 if (usApproveDevelopment == ctrl.russianDictionary.yes)
                 {
                     if (usState == "development")
                     {
+                        if (wiType == "Bug Prod" && !ctrl.bugProdTestingFlag)
+                            return undefined;
                         //ctrl.approvedDestination = "Test";
                         approveFor = "Test";//'Test' System
                     } 
@@ -477,7 +476,7 @@ Array.prototype.unique = function () {
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
                                         var approveTesting = t.fields["Logrocon.ApproveTesting"].toLowerCase() == ctrl.russianDictionary.yes;
 
-                                        if (!approveTesting)
+                                        if (!approveTesting && activity)
                                                 ctrl.bugProdTestingFlag = approveTesting;
 
                                         var taskFlag = false;
