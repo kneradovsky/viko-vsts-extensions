@@ -52,6 +52,7 @@ Array.prototype.unique = function () {
             this.bugProdTestingFlag = true;
 
             this.containerLinkIds = [];
+            this.containerMessages = [];
             this.currentUser = null;
             this.password = null;
             this.cachedTeams = null;
@@ -489,6 +490,10 @@ Array.prototype.unique = function () {
                                             .filter(function(link) {return link.rel == 'Microsoft.VSTS.TestCase.SharedParameterReferencedBy-Forward'})
                                             .map(function(link) { return link.url.split("/").pop() })
                                             .map(function(strid) {return parseInt(strid)});
+                                        
+                                        var containerMsg="CDCIApprovemnt is "+(approve == ctrl.russianDictionary.yes ? "on" : "off")+"\n";
+                                        containerMsg+="Activity is "+(activity ? "" : "not")+" Development\n";
+                                        containerMsg+="ApproveTestsing is "+(approveTesting ? "on" : "off")+"\n";
 
 
                                         for (var i in ids)
@@ -499,6 +504,10 @@ Array.prototype.unique = function () {
                                             if (ctrl.containerLinkIds[taskId] == undefined)
                                                 ctrl.containerLinkIds[taskId] = false;
                                             ctrl.containerLinkIds[taskId] = ctrl.containerLinkIds[taskId] == true ? true : taskFlag;
+                                            if(!ctrl.containerLinkIds[taskId]) {
+                                                if(ctrl.containerMessages[taskId] === undefined) ctrl.containerMessages[taskId]="";
+                                                ctrl.containerMessages[taskId]+=containerMsg;
+                                            }
                                         }
                                         //containerLinkIds = containerLinkIds.concat(ids);
                                     });
@@ -529,7 +538,9 @@ Array.prototype.unique = function () {
                                                 var containerId = containerTasks[i].fields['System.Id'];
                                                 var containerTitle = containerTasks[i].fields['System.Title'];
                                                 var containerObject = { "title":containerTitle,
-                                                                        "taskPassed":ctrl.containerLinkIds[containerId] }
+                                                                        "taskPassed":ctrl.containerLinkIds[containerId],
+                                                                        "id" : containerId
+                                                                      }
                                                 ctrl.containerNames.push(containerObject);
                                             }
 
@@ -676,7 +687,7 @@ Array.prototype.unique = function () {
             <div ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'" id="containersList" style="overflow:scroll; height: 100%;">
                 <ul>
                     <li ng-repeat="contName in ctrl.containerNames">
-                        <input type="checkbox" name="selectedContainers[]"
+                        <input type="checkbox" name="selectedContainers[]" title="{{ctrl.containerMessages[contName.id]}}"
                         ng-model="selectedConts[contName.title]" ng-disabled="ctrl.buttonDestinationValue=='' || ctrl.buttonDestinationValue==undefined || !contName.taskPassed"/>{{contName.title}}
                         <div style="position: relative; left: 200px; top: -10px;">
                             <ul>
