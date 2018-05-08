@@ -49,7 +49,7 @@ Array.prototype.unique = function () {
             this.workItem = null;
             this.approvedDestination = undefined;
             this.buttonDestinationValue = undefined;
-            this.bugProdTestingFlag = true;
+            this.TestingFlag = true;
 
             this.containerLinkIds = [];
             this.currentUser = null;
@@ -284,13 +284,14 @@ Array.prototype.unique = function () {
                 {
                     if (usState == "development")
                     {
-                        if (wiType == "Bug Prod" && !ctrl.bugProdTestingFlag)
-                            return undefined;
+                        /*if (wiType == "Bug Prod" && !ctrl.TestingFlag)
+                            return undefined;*/
                         //ctrl.approvedDestination = "Test";
                         approveFor = "Test";//'Test' System
                     } 
                     else if (usState == "ready for release" 
-                    && approveTesting == ctrl.russianDictionary.yes)
+                    && approveTesting == ctrl.russianDictionary.yes
+                    && ctrl.TestingFlag)
                     {
                         //ctrl.approvedDestination = "PreProd";
                         approveFor = "PreProd";//'PreProd' System
@@ -471,13 +472,13 @@ Array.prototype.unique = function () {
                                         var approveSupport = t.fields["Logrocon.ApproveSupport"];
                                         var usState = usWorkItem.fields["System.State"];
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"];*/
-
+                                        var workItemType = t.fields["System.WorkItemType"].toLowerCase() == 'task';
                                         var approve = t.fields["Logrocon.CDCIApprovement"] == undefined ? null : t.fields["Logrocon.CDCIApprovement"].toLowerCase();
                                         var activity = t.fields["Microsoft.VSTS.Common.Activity"] == "Development";
-                                        var approveTesting = t.fields["Logrocon.ApproveTesting"].toLowerCase() == ctrl.russianDictionary.yes;
+                                        var approveTesting = t.fields["Logrocon.ApproveTesting"] == undefined ? false : t.fields["Logrocon.ApproveTesting"].toLowerCase() == ctrl.russianDictionary.yes;
 
-                                        if (!approveTesting && activity)
-                                                ctrl.bugProdTestingFlag = approveTesting;
+                                        if (!approveTesting && workItemType)
+                                                ctrl.TestingFlag = approveTesting;
 
                                         var taskFlag = false;
                                         if (activity && approve != null && approve == ctrl.russianDictionary.yes)
