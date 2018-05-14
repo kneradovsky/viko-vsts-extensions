@@ -147,7 +147,7 @@ Array.prototype.unique = function () {
                     var username = ctrl.currentUser.uniqueName.split("\\")[1];
                     var tokenStr = username+":"+ctrl.password;
                     build.headers["Authorization"]="Basic "+btoa(tokenStr);
-                    build.headers["Content-Type"]="application/json; charset=utf-8";
+                    //build.headers["Content-Type"]="application/json; charset=utf-8";
                     if(build.type=='tfs') {
                         build.buildParams = buildParams;
                         ctrl.logBuild(workItem.id,build);
@@ -321,11 +321,21 @@ Array.prototype.unique = function () {
                     if (idents.length == 1000)
                         execute = true;
                     idents.filter(function(m) { identityArray.push(m) });
-                    if (execute)
-                        deferred.resolve(ctrl.getAllTeamMembers(client, projectId, teamId, queryCounter+1, identityArray, execute));
+                    if (execute) {
+                        var loadMembersResolved=false;
+                        let waitMembersLoadComplete = function() {
+                                    if(!loadMembersResolved) {
+                                        console.log("waiting to load all team members");
+                                        setTimeout(waitMembersLoadComplete,1000);
+                                    } else deferred.resolve(identityArray);
+                                }
+                        ctrl.getAllTeamMembers(client, projectId, teamId, queryCounter+1, identityArray, execute).then(function(result) {loadMembersResolved=true;});
+                        waitMembersLoadComplete();
+                    }
                     else
                         deferred.resolve(identityArray);
                 });
+
                 return deferred.promise();
             }
 
@@ -346,8 +356,17 @@ Array.prototype.unique = function () {
                         if (teams.length == 1000)
                             execute = true;
                         teams.filter(function(m) { teamsArray.push(m) });
-                        if (execute)
-                            deferred.resolve(ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute));
+                        if (execute) {
+                            var loadTeamsResolved=false;
+                            let waitTeamsLoadComplete = function() {
+                                    if(!loadTeamsResolved) {
+                                        console.log("waiting to load all admins");
+                                        setTimeout(waitTeamsLoadComplete,1000);
+                                    } else deferred.resolve(teamsArray);
+                                }
+                            ctrl.getAllTeams(client, projectId, queryCounter+1, teamsArray, execute).then(function(result) {loadTeamsResolved=true})
+                            waitTeamsLoadComplete();
+                        }
                         else {
                             ctrl.cachedTeams=teamsArray;
                             deferred.resolve(teamsArray);
@@ -371,8 +390,12 @@ Array.prototype.unique = function () {
                         var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
                         ctrl.getAllTeamMembers(client,tfsContext.contextData.project.id,wiTeam.id).then(function(tm) {
                         //var wiTeam = teams.filter(function(t) {return t.name==teamName})[0];
-                            if(tm.filter(function(m) {return m.id==tfsContext.currentIdentity.id}).length==0)
+                            if(tm.filter(function(m) {return m.id==tfsContext.currentIdentity.id}).length==0) {
+                                deferred.resolve();
+                                ctrl.ErrorMsg="You're not in the "+wiTeam.name + " team";
                                 return; //return if nonmember press on the button;
+                            }
+                                
                             //check for each environment
                             envQueueLen = 3;
                             ["Test","PreProd","Prod"].forEach(function(env) {
@@ -679,9 +702,11 @@ Array.prototype.unique = function () {
             </div>
             <ul ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'">
                 <div id="systemButtonsPlaceHolder">
-                    <button id="TestDestination" ng-disabled="!(ctrl.approvedDestination=='Test' && ctrl.isManager['Test'])" ng-click="ctrl.setSystem(null, 'Test')">Test</button>
-                    <button id="PreProdDestination" ng-disabled="!(ctrl.approvedDestination=='PreProd' && ctrl.isManager['PreProd'])" ng-click="ctrl.setSystem(null, 'PreProd')">PreProd</button>
-                    <button id="ProdDestination" ng-disabled="!(ctrl.approvedDestination=='Prod' && ctrl.isManager['Prod'])" ng-click="ctrl.setSystem(null, 'Prod')">Prod</button>
+                    <button ng-repeat="env in ['Test','PreProd','Prod']"
+                        id="{{env+'Destination'}}"
+                        ng-disabled="!(ctrl.approvedDestination==env && ctrl.isManager[env])"
+                        ng-click="ctrl.setSystem(null, env)"
+                        title="{{ctrl.isManager[env] ? '' : 'you are not the manager for the '+env+' environment'}}">{{env}}</button>
                 </div>
             </ul>
             <div ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'" id="containersList" style="overflow:scroll; height: 100%;">
