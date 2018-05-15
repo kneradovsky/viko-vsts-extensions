@@ -706,7 +706,8 @@ Array.prototype.unique = function () {
                         id="{{env+'Destination'}}"
                         ng-disabled="!(ctrl.approvedDestination==env && ctrl.isManager[env])"
                         ng-click="ctrl.setSystem(null, env)"
-                        title="{{ctrl.isManager[env] ? '' : 'you are not the manager for the '+env+' environment'}}">{{env}}</button>
+                        title="{{ctrl.isManager[env] ? '' : 'you are not the manager for the '+env+' environment'}}"
+                        style="{{ctrl.approvedDestination==env && !ctrl.isManager[env] ? 'background-color:red;color:white;': 'background-color:white;color:black;'}}">{{env}}</button>
                 </div>
             </ul>
             <div ng-if="ctrl.wiType=='User Story' || ctrl.wiType=='Bug Prod'" id="containersList" style="overflow:scroll; height: 100%;">
@@ -740,7 +741,6 @@ Array.prototype.unique = function () {
             <hr/>
             <div id="buttonsPlaceHolder" style="display:none">
                 <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.deployWorkItem()">Deploy</button>
-                <button ng-disabled="ctrl.buttonDestinationValue==undefined" ng-click="ctrl.revertDeployWorkItem()">Revert deploy</button>
             </div>
         </div>
         <div class="wait-control-target"></div>
