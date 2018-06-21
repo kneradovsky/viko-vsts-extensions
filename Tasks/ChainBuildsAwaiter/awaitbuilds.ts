@@ -79,7 +79,7 @@ function createBuildRunResult(build:bi.Build) : ti.TestCaseResult {
     result.automatedTestName=build.definition.name;
     result.automatedTestStorage = build.project.name;
     result.computerName = "(undefined)"
-    if(build.queue.name !== undefined)
+    if(build.queue!= undefined && build.queue.name != undefined)
         result.computerName = build.queue.name;
     result.comment = build.parameters; 
     result.outcome = bi.BuildResult[build.result].toLowerCase().endsWith("succeeded") ? "Passed" : "Failed";
