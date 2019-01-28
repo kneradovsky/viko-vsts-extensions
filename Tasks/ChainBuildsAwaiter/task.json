@@ -9,7 +9,7 @@
     "version": {
         "Major": 1,
         "Minor": 3,
-        "Patch": 9
+        "Patch": 10
     },
     "instanceNameFormat": "Awaits queued builds",
     "groups": [
@@ -36,6 +36,15 @@
             "required": false,
             "groupName" : "advanced",
             "helpMarkDown": "If flag is on then the status of the main build will ignore child build tests with statuses other than pass/fail while computing its own status"
+        },
+        {
+            "name": "generatesTestResultForOriginalBuild",
+            "type": "boolean",
+            "label": "Generates test result for original build",
+            "defaultValue": true,
+            "required": false,
+            "groupName" : "advanced",
+            "helpMarkDown": "If flag is on then creates synthetic test run called Builds that represents original builds as tests"
         }                
     ],
     "execution": {

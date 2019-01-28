@@ -161,6 +161,7 @@ async function run() : Promise<number>{
     let strBuildList = tl.getVariable("queuedBuilds");
     let sleepBetweenIters = Number.parseInt(tl.getInput("sleepBetweenIters"));
     let twoStateStatus = tl.getBoolInput("twoStateStatus")
+	let generatesTestResultForOriginalBuild = tl.getBoolInput("generatesTestResultForOriginalBuild");
     if(strBuildList==null) throw new Error("queuedBuilds initialization error. Check that Chain Builds Starter present in the build before the Awaiter");
     console.log(tl.loc("queuedBuilds",strBuildList));
     try {
@@ -188,7 +189,8 @@ async function run() : Promise<number>{
             }
         }
         jobsResult.completedDate = new Date();
-        createTestReport(jobsResult,buildResults);
+		if (generatesTestResultForOriginalBuild)
+			createTestReport(jobsResult,buildResults);
         //1 - passed, 2 - passed with issues, 3 - failed
         tl.debug(`Result variables, hasFailedBuilds=${hasFailedBuilds}, passedTests=${passedTests}, totalTests=${totalTests}, twoStateStatus=${twoStateStatus}`);
         let result = hasFailedBuilds ? 3 : passedTests==totalTests || (twoStateStatus && passedTests>0) ? 1 : passedTests==0 ? 3 : 2;
