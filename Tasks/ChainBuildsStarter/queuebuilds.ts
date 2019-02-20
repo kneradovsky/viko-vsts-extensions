@@ -28,7 +28,13 @@ async function run() {
     let buildNumbersStr = tl.getVariable("queuedBuilds") || "";
     var buildParameters = {}
     try {
-        buildParameters = JSON.parse(tl.getInput("buildParameters"))
+		let bp = tl.getInput("buildParameters");
+		if (bp.startsWith("@")) {
+			// Read Build Parameters from a file
+			let bppath = path.join(tl.getVariable("Agent.BuildDirectory"), bp.substr(1));
+			bp = fs.readFileSync(bppath, "utf8");
+		}
+        buildParameters = JSON.parse(bp);
     } catch(jserr) {
         buildParameters = {}
         tl.warning("Failed to parse buildParameters, fallback to default value - {}")
