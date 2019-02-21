@@ -29,7 +29,7 @@ async function run() {
     var buildParameters = {}
     try {
 		let bp = tl.getInput("buildParameters");
-		if (bp.startsWith("@")) {
+		if (bp.startsWith('@')) {
 			// Read Build Parameters from a file
 			let bppath = path.join(tl.getVariable("Agent.BuildDirectory"), bp.substr(1));
 			bp = fs.readFileSync(bppath, "utf8");
